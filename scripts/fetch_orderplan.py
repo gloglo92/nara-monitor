@@ -10,6 +10,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 import logging
+from save_to_repo import save_json_data
 
 logging.basicConfig(
     level=logging.INFO,
@@ -312,6 +313,9 @@ def main():
 
     filepath = save_excel(df, date_str)
     send_telegram_file(filepath, date_str, len(df), df)
+
+    # ★ JSON 저장 (웹사이트 데이터 갱신)
+    save_json_data(df, date_str, "발주계획")
     logger.info("▶ 완료")
 
 
