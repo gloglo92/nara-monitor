@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🌿 레저조경부 나라장터 모니터</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
     --green-dark: #1a4731;
@@ -321,6 +321,7 @@ const BASE_DATA = location.hostname === "localhost"
 
 // ── 키워드 설정 ──────────────────────────────────────────
 const INCLUDE_KW = [
+  // ── 기존 키워드 ─────────────────────────────────────────
   "공원","경관","관광","관광지","관광자원","관광단지","지역개발","지역활성화","농어촌","농촌","어촌",
   "생태","녹지","산림","숲","수변","자연경관","에코파크","생태공원","정원","치유의숲","산림치유","도시숲",
   "조경","경관설계","아름다운거리","가로경관","경관개선","가로수",
@@ -330,69 +331,32 @@ const INCLUDE_KW = [
   "문화관광","문화재","역사문화","유산","근대역사","역사공원",
   "도시재생","마을만들기","마을조성","마을재생","권역개발","거점개발","지역특화",
   "체육","스포츠","레포츠","수상레저",
+  // ── 직접 추가 요청 ───────────────────────────────────────
+  "친수공간","물순환","친수","은퇴자마을","골목재생","명소화","명소",
+  "트레일","여가","레져","워터파크","녹화","박람회",
+  "식재","파크","골프","바람길","해안길","수변길","테마로드",
+  "복원","복지","콘텐츠","문화","복합문화","신활력","거점",
+  "복합","놀이터","철도복개","쉼터","자연","에코",
+  "호국원","야생","동물","관찰원","치유원",
+  "트리탑로드","스카이로드","로드",
+  // ── 기후대응/생태 ────────────────────────────────────────
+  "기후대응도시숲","스마트도시숲","도시바람길숲","미세먼지차단숲","미세먼지","차단숲",
+  "탄소저장숲","탄소중립","산림생태복원","자생식물",
+  "훼손지복구","대체산림조성","사방댐","산림경관","산림복지",
+  // ── 정원/해양/어촌 ──────────────────────────────────────
+  "국가정원","지방정원","정원도시","정원비엔날레",
+  "어촌뉴딜","어촌신활력","K-관광섬","해양레저","갯벌생태",
+  // ── 마이크로 레저/복합공간 ──────────────────────────────
+  "맨발걷기","파크골프","복합스포츠","무장애탐방",
+  "산림치유원","유아숲체험","반려견","매립장","복개",
+  // ── 제도/기획/컨설팅 ────────────────────────────────────
+  "민간공원","장기미집행","일몰제","기부채납",
+  "기본구상","타당성조사","마스터플랜",
+  "조성계획","경관계획","공원녹지기본계획","활용방안",
 ];
-const EXCLUDE_KW = [
-  // ── 건설사업관리본부 ───────────────────────────────────────
-  "건설사업관리",
 
-  // ── 수도사업본부 (상하수도1·2·3부, O&M사업부) ──────────────
-  "상수도","하수도","상수관","하수관","배수관",
-  "정수장","수도관망","급수","오수","펌프장",
-  "노후상수","노후하수","수도정비",
-  "수리시설","양수장",
-
-  // ── 도로공항부 ─────────────────────────────────────────────
-  "도로건설","도로포장","포장공사","도로확포장","도로개설",
-  "공항","활주로",
-  "군도","도시계획시설",
-
-  // ── 수자원부 ───────────────────────────────────────────────
-  "댐","저수지","하천정비","홍수","치수","수자원",
-  "계통확장","계통사업","계통공사",
-
-  // ── 철도·구조사업부 ────────────────────────────────────────
-  "철도건설","도시철도","교량","터널구조","지하철",
-
-  // ── 항만부 ─────────────────────────────────────────────────
-  "항만","부두","선착장","방파제","어항",
-
-  // ── 지반터널부 ─────────────────────────────────────────────
-  "터널","지반조사","연약지반","굴착",
-
-  // ── 교통계획부 ─────────────────────────────────────────────
-  "교통영향평가","교통계획","신호체계","주차",
-
-  // ── 기전시스템부 ───────────────────────────────────────────
-  "전기설비","기계설비","소방설비","관망감시",
-
-  // ── 환경평가부 ─────────────────────────────────────────────
-  "환경영향평가","소음진동","대기오염",
-
-  // ── 에너지·환경사업부 ──────────────────────────────────────
-  "에너지사업","산업단지","공업단지","산단","온산",
-  "발전사업","전력사업","신재생에너지",
-  "기계엔지니어링","플랜트","전기공사","전력설비",
-  "배전","송전","변전","발전소","열병합",
-  "DX","디지털트윈","스마트팩토리","가상융합",
-  "ICT","IoT","AI시스템","빅데이터","클라우드",
-  "정보시스템","소프트웨어","데이터센터",
-
-  // ── 교육·연구 ──────────────────────────────────────────────
-  "교육운영","교육연구","검사문항","학습연구","교육종합",
-
-  // ── 경찰·행정 시설 ─────────────────────────────────────────
-  "지구대","파출소","경찰서",
-
-  // ── 주거·임대 (단지설계부 업무) ───────────────────────────
-  "노후임대","임대주택","공공임대",
-
-  // ── 기타 편의·안전 시설 (레저조경 무관) ───────────────────
-  "이동편의시설","승강편의시설","내진보강",
-  "소방서","노면표시","자연재해",
-
-  // ── 기타 명확히 무관 ───────────────────────────────────────
-  "리튬배터리","화재안전보관","반부조","밀폐용",
-];
+// ── 제외 키워드: 건설사업관리만 (확정·검토 어디에도 안 보임) ──
+const EXCLUDE_KW = ["건설사업관리"];
 
 // ── 상태 ─────────────────────────────────────────────────
 let state = {
@@ -481,11 +445,6 @@ async function loadDate(dateStr) {
 function getNameField(type) {
   return type === "사전규격" ? "사업명(품명)" : "사업명";
 }
-function isConfirmed(name, kwList) {
-  const kw = kwList || INCLUDE_KW;
-  if (EXCLUDE_KW.some(k => name.includes(k))) return false;
-  return kw.some(k => name.includes(k));
-}
 function matchedKw(name, kwList) {
   return (kwList || INCLUDE_KW).filter(k => name.includes(k)).join(", ");
 }
@@ -498,7 +457,9 @@ function getFilteredItems(rawData, refilterKw) {
   const confirmed = [], review = [];
   (rawData.items || []).forEach(item => {
     const name = String(item[nameField] || "");
-    const mk   = matchedKw(name, kw);
+    // 건설사업관리: 확정·검토 어디에도 표시 안 함
+    if (EXCLUDE_KW.some(k => name.includes(k))) return;
+    const mk = matchedKw(name, kw);
     if (mk) confirmed.push({ ...item, _matched: mk });
     else    review.push(item);
   });
@@ -649,115 +610,28 @@ function downloadExcel() {
   const wb = XLSX.utils.book_new();
   const dateStr = state.currentDate;
 
-  // ── 키워드 그룹 정렬 순서 ──────────────────────────────
-  const KW_ORDER = ["타당성","기본구상","기본계획","설계","건설사업관리"];
-
-  const getKwGroup = (item) => {
-    const name = item["사업명(품명)"] || item["사업명"] || "";
-    for (const kw of KW_ORDER) {
-      if (name.includes(kw)) return kw;
-    }
-    return "기타";
-  };
-
-  const sortByKwGroup = (items) => {
-    return [...items].sort((a, b) => {
-      const ai = KW_ORDER.indexOf(getKwGroup(a));
-      const bi = KW_ORDER.indexOf(getKwGroup(b));
-      const ao = ai === -1 ? 99 : ai;
-      const bo = bi === -1 ? 99 : bi;
-      if (ao !== bo) return ao - bo;
-      // 같은 그룹 내 금액 내림차순
-      const av = parseInt((a["배정예산액(원)"] || a["합계발주금액(원)"] || "0").replace(/,/g,"")) || 0;
-      const bv = parseInt((b["배정예산액(원)"] || b["합계발주금액(원)"] || "0").replace(/,/g,"")) || 0;
-      return bv - av;
-    });
-  };
-
-  // ── 셀 스타일 적용 ────────────────────────────────────
-  const applyStyle = (ws, headerColor, colWidths) => {
-    const range = XLSX.utils.decode_range(ws["!ref"]);
-
-    for (let C = range.s.c; C <= range.e.c; C++) {
-      const cellAddr = XLSX.utils.encode_cell({ r: 0, c: C });
-      if (!ws[cellAddr]) continue;
-      ws[cellAddr].s = {
-        fill: { fgColor: { rgb: headerColor } },
-        font: { color: { rgb: "FFFFFF" }, bold: true },
-        alignment: { horizontal: "center", vertical: "center", wrapText: false },
-        border: {
-          top:    { style: "thin", color: { rgb: "CCCCCC" } },
-          bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-          left:   { style: "thin", color: { rgb: "CCCCCC" } },
-          right:  { style: "thin", color: { rgb: "CCCCCC" } },
-        }
-      };
-    }
-
-    // 데이터 행 스타일 (얼룩무늬)
-    for (let R = 1; R <= range.e.r; R++) {
-      const isEven = R % 2 === 0;
-      for (let C = range.s.c; C <= range.e.c; C++) {
-        const cellAddr = XLSX.utils.encode_cell({ r: R, c: C });
-        if (!ws[cellAddr]) ws[cellAddr] = { t: "s", v: "" };
-        ws[cellAddr].s = {
-          fill: { fgColor: { rgb: isEven ? "F2F7F2" : "FFFFFF" } },
-          alignment: { vertical: "center", wrapText: false },
-          border: {
-            top:    { style: "thin", color: { rgb: "DDDDDD" } },
-            bottom: { style: "thin", color: { rgb: "DDDDDD" } },
-            left:   { style: "thin", color: { rgb: "DDDDDD" } },
-            right:  { style: "thin", color: { rgb: "DDDDDD" } },
-          }
-        };
-      }
-    }
-
-    ws["!cols"] = colWidths;
-    ws["!rows"] = [{ hpt: 22 }]; // 헤더 행 높이
-  };
-
-  const buildWS = (rawData, label, headerColor) => {
+  const buildWS = (rawData, label) => {
     if (!rawData) return;
-    const f = getFilteredItems(rawData, state.refilterKw);
+    const f   = getFilteredItems(rawData, state.refilterKw);
     const nameField = getNameField(rawData.type);
-    const amtField  = rawData.type === "사전규격" ? "배정예산액(원)" : "합계발주금액(원)";
-    const dateField = rawData.type === "사전규격" ? "의견등록마감일" : "게시일시";
 
-    const colWidths = [
-      { wch: 6  },  // 순위
-      { wch: 55 },  // 사업명
-      { wch: 22 },  // 발주기관
-      { wch: 18 },  // 예산
-      { wch: 14 },  // 마감/게시일
-      { wch: 20 },  // 매칭키워드 or 비고
-    ];
+    const toRows = (items, tag) => items.map((r, i) => ({
+      "순위": i + 1,
+      [nameField]: r[nameField] || "",
+      "발주기관": r["발주기관"] || r["수요기관"] || "",
+      "예산(원)": r["배정예산액(원)"] || r["합계발주금액(원)"] || "",
+      "마감/게시일": r["의견등록마감일"] || r["게시일시"] || "",
+      [tag]: tag === "매칭키워드" ? (r._matched || "") : "",
+    }));
 
-    const toRows = (items, kwTag) =>
-      sortByKwGroup(items).map((r, i) => ({
-        "순위": i + 1,
-        [nameField]: r[nameField] || "",
-        "발주기관": r["발주기관"] || r["수요기관"] || "",
-        "예산(원)": r[amtField] || "",
-        "마감/게시일": (r[dateField] || "").slice(0, 10),
-        [kwTag]: kwTag === "매칭키워드" ? (r._matched || "") : "",
-      }));
-
-    // 확정 시트
-    const rows1 = toRows(f.confirmed, "매칭키워드");
-    const ws1 = XLSX.utils.json_to_sheet(rows1);
-    applyStyle(ws1, headerColor, colWidths);
+    const ws1 = XLSX.utils.json_to_sheet(toRows(f.confirmed, "매칭키워드"));
+    const ws2 = XLSX.utils.json_to_sheet(toRows(f.review, "비고(미분류)"));
     XLSX.utils.book_append_sheet(wb, ws1, `${label}-확정`);
-
-    // 검토 시트
-    const rows2 = toRows(f.review, "비고(미분류)");
-    const ws2 = XLSX.utils.json_to_sheet(rows2);
-    applyStyle(ws2, headerColor, colWidths);
     XLSX.utils.book_append_sheet(wb, ws2, `${label}-검토`);
   };
 
-  buildWS(state.specData, "사전규격", "1F4E79"); // 파란색
-  buildWS(state.planData, "발주계획", "1B5E20"); // 초록색
+  buildWS(state.specData, "사전규격");
+  buildWS(state.planData, "발주계획");
 
   const y = dateStr.slice(0,4), m = dateStr.slice(4,6), d = dateStr.slice(6);
   XLSX.writeFile(wb, `레저조경부_나라장터_${y}${m}${d}.xlsx`);
