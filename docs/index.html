@@ -88,6 +88,29 @@
     background: #dcfce7; color: #166534; font-size: 11px; font-weight: bold;
     padding: 4px 10px; border-radius: 20px; margin-left: auto;
   }
+  /* ── 기간 조회 ── */
+  .date-divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+  .range-toggle {
+    background: #f1f5f9; color: var(--gray); border: 1px solid var(--border);
+    padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;
+    transition: all 0.2s;
+  }
+  .range-toggle.active { background: #7c3aed; color: white; border-color: #7c3aed; }
+  .range-inputs { display: none; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .range-inputs.visible { display: flex; }
+  .range-inputs label { font-size: 12px; color: var(--gray); white-space: nowrap; }
+  .range-inputs select {
+    padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 12px; cursor: pointer; background: white;
+  }
+  .range-btn {
+    background: #7c3aed; color: white; border: none;
+    padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;
+  }
+  .range-badge {
+    background: #ede9fe; color: #5b21b6; font-size: 11px; font-weight: bold;
+    padding: 4px 10px; border-radius: 20px;
+  }
 
   /* ── 요약 카드 ── */
   .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
@@ -232,7 +255,20 @@
         <option value="">로딩 중...</option>
       </select>
       <button class="refresh-btn" onclick="loadIndex()">🔄 새로고침</button>
-      <div class="today-badge" id="today-badge">최신 데이터</div>
+
+      <div class="date-divider"></div>
+
+      <button class="range-toggle" id="range-toggle" onclick="toggleRange()">📆 기간 조회</button>
+      <div class="range-inputs" id="range-inputs">
+        <label>시작</label>
+        <select id="range-start"></select>
+        <label>~ 종료</label>
+        <select id="range-end"></select>
+        <button class="range-btn" onclick="loadRange()">조회</button>
+      </div>
+      <span class="range-badge" id="range-badge" style="display:none"></span>
+
+      <div class="today-badge" id="today-badge" style="margin-left:auto">최신 데이터</div>
     </div>
 
     <!-- 요약 카드 -->
@@ -365,6 +401,8 @@ let state = {
   planData: null,
   currentTab: { type: "spec", sub: "confirmed" },
   refilterKw: null,
+  isRangeMode: false,
+  availableDates: [],
 };
 
 // ════════════════════════════════════════════════════════
@@ -399,16 +437,42 @@ async function loadIndex() {
   try {
     const res  = await fetch(`${BASE_DATA}/index.json?t=${Date.now()}`);
     const idx  = await res.json();
-    const sel  = document.getElementById("date-select");
+    const dates = idx.dates || [];
+    state.availableDates = dates;
+
+    // 날짜 선택 드롭다운
+    const sel = document.getElementById("date-select");
     sel.innerHTML = "";
-    (idx.dates || []).forEach((d, i) => {
-      const opt  = document.createElement("option");
-      opt.value  = d;
+    dates.forEach((d, i) => {
+      const opt = document.createElement("option");
+      opt.value = d;
       const y = d.slice(0,4), m = d.slice(4,6), day = d.slice(6);
-      opt.text   = `${y}-${m}-${day}${i === 0 ? " (최신)" : ""}`;
+      opt.text = `${y}-${m}-${day}${i === 0 ? " (최신)" : ""}`;
       sel.appendChild(opt);
     });
-    const latest = idx.latest || (idx.dates || [])[0];
+
+    // 기간 조회 드롭다운 (시작/종료) - 날짜 오름차순
+    const datesAsc = [...dates].reverse();
+    ["range-start", "range-end"].forEach(id => {
+      const s = document.getElementById(id);
+      s.innerHTML = "";
+      datesAsc.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.text = `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6)}`;
+        s.appendChild(opt);
+      });
+    });
+    // 기본값: 시작=7일 전 or 첫 날, 종료=최신
+    const rsEl = document.getElementById("range-start");
+    const reEl = document.getElementById("range-end");
+    if (datesAsc.length > 0) {
+      reEl.value = datesAsc[datesAsc.length - 1]; // 최신
+      const defaultStart = datesAsc.length >= 7 ? datesAsc[datesAsc.length - 7] : datesAsc[0];
+      rsEl.value = defaultStart;
+    }
+
+    const latest = idx.latest || dates[0];
     if (latest) loadDate(latest);
     document.getElementById("last-update").textContent =
       `최신: ${latest ? latest.slice(0,4)+"-"+latest.slice(4,6)+"-"+latest.slice(6) : "-"}`;
@@ -418,10 +482,91 @@ async function loadIndex() {
   }
 }
 
+// ── 기간 조회 토글 ──
+function toggleRange() {
+  const btn    = document.getElementById("range-toggle");
+  const inputs = document.getElementById("range-inputs");
+  const on = !inputs.classList.contains("visible");
+  inputs.classList.toggle("visible", on);
+  btn.classList.toggle("active", on);
+  if (!on) {
+    // 기간 모드 해제 → 단일 날짜 모드 복귀
+    state.isRangeMode = false;
+    document.getElementById("range-badge").style.display = "none";
+    loadDate(document.getElementById("date-select").value);
+  }
+}
+
+// ── 기간 조회 실행 ──
+async function loadRange() {
+  const start = document.getElementById("range-start").value;
+  const end   = document.getElementById("range-end").value;
+  if (!start || !end) return;
+
+  // 시작 <= 종료 보장
+  const s = start <= end ? start : end;
+  const e = start <= end ? end   : start;
+
+  // 해당 범위 날짜 목록 추출
+  const targetDates = state.availableDates.filter(d => d >= s && d <= e);
+  if (targetDates.length === 0) {
+    alert("선택한 기간에 수집된 데이터가 없습니다.");
+    return;
+  }
+
+  state.isRangeMode = true;
+  state.currentDate = `${s}~${e}`;
+  state.refilterKw  = null;
+
+  document.getElementById("table-area").innerHTML =
+    `<div class="loading"><div class="spinner"></div><br>${targetDates.length}일치 데이터 합산 중...</div>`;
+
+  // 모든 날짜 JSON 병렬 로드
+  const fetches = targetDates.map(d => Promise.allSettled([
+    fetch(`${BASE_DATA}/${d}-사전규격.json?t=${Date.now()}`),
+    fetch(`${BASE_DATA}/${d}-발주계획.json?t=${Date.now()}`),
+  ]));
+  const results = await Promise.all(fetches);
+
+  // 합산 + 중복 제거 (사전규격: 사전규격등록번호 / 발주계획: 사업명+발주기관)
+  const specItems = [], planItems = [];
+  const specSeen = new Set(), planSeen = new Set();
+
+  for (const [specRes, planRes] of results) {
+    if (specRes.status === "fulfilled" && specRes.value.ok) {
+      const data = await specRes.value.json();
+      (data.items || []).forEach(item => {
+        const key = item["사전규격등록번호"] || item["사업명(품명)"];
+        if (key && !specSeen.has(key)) { specSeen.add(key); specItems.push(item); }
+      });
+    }
+    if (planRes.status === "fulfilled" && planRes.value.ok) {
+      const data = await planRes.value.json();
+      (data.items || []).forEach(item => {
+        const key = (item["사업명"] || "") + "|" + (item["발주기관"] || "");
+        if (key && !planSeen.has(key)) { planSeen.add(key); planItems.push(item); }
+      });
+    }
+  }
+
+  state.specData = specItems.length > 0 ? { type: "사전규격", items: specItems } : null;
+  state.planData = planItems.length > 0 ? { type: "발주계획", items: planItems } : null;
+
+  // 배지 표시
+  const badge = document.getElementById("range-badge");
+  badge.style.display = "inline-block";
+  badge.textContent = `📆 ${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6)} ~ ${e.slice(0,4)}-${e.slice(4,6)}-${e.slice(6)} (${targetDates.length}일)`;
+
+  updateSummary();
+  showTab(state.currentTab.type, state.currentTab.sub);
+}
+
 async function loadDate(dateStr) {
   if (!dateStr) return;
-  state.currentDate = dateStr;
-  state.refilterKw  = null;
+  state.currentDate  = dateStr;
+  state.refilterKw   = null;
+  state.isRangeMode  = false;
+  document.getElementById("range-badge").style.display = "none";
   document.getElementById("table-area").innerHTML =
     `<div class="loading"><div class="spinner"></div><br>데이터 불러오는 중...</div>`;
 
@@ -708,8 +853,10 @@ function downloadExcel() {
   buildWS(state.specData, "사전규격", "1F4E79"); // 파란색
   buildWS(state.planData, "발주계획", "1B5E20"); // 초록색
 
-  const y = dateStr.slice(0,4), m = dateStr.slice(4,6), d = dateStr.slice(6);
-  XLSX.writeFile(wb, `레저조경부_나라장터_${y}${m}${d}.xlsx`);
+  const fileName = state.isRangeMode
+    ? `레저조경부_나라장터_${dateStr.replace("~","_")}.xlsx`
+    : `레저조경부_나라장터_${dateStr}.xlsx`;
+  XLSX.writeFile(wb, fileName);
 }
 </script>
 </body>
