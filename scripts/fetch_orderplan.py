@@ -137,23 +137,16 @@ def fetch_all_pages(start_dt: str, end_dt: str) -> list[dict]:
     return all_items
 
 
-def filter_by_keywords(df: pd.DataFrame) -> pd.DataFrame:
-    """사업명에 키워드가 포함된 행만 필터링"""
-    if df.empty:
-        return df
-    pattern = "|".join(KEYWORDS)
-    mask = df["사업명"].str.contains(pattern, na=False)
-    filtered = df[mask].reset_index(drop=True)
-    filtered.index += 1
-    logger.info(
-        f"키워드 필터링 ({', '.join(KEYWORDS)}): "
-        f"{len(df)}건 → {len(filtered)}건"
-    )
-    return filtered
+def assign_keyword_group(name: str) -> str:
+    """사업명에서 첫 번째 매칭 키워드 반환 (KEYWORDS 순서 우선)"""
+    for kw in KEYWORDS:
+        if kw in name:
+            return kw
+    return ""
 
 
 def build_dataframe(items: list[dict]) -> pd.DataFrame:
-    """DataFrame 변환 및 발주도급금액 내림차순 정렬"""
+    """DataFrame 변환 → 키워드 필터·태깅 → 그룹순서+금액 내림차순 정렬"""
     if not items:
         return pd.DataFrame()
 
@@ -165,14 +158,45 @@ def build_dataframe(items: list[dict]) -> pd.DataFrame:
 
     df = df[list(COLUMN_MAP.keys())].rename(columns=COLUMN_MAP)
 
-    # 금액 숫자 변환 → 정렬 → 천단위 콤마
+    # 금액 숫자 변환
     df["합계발주금액(원)"] = (
         pd.to_numeric(df["합계발주금액(원)"], errors="coerce")
         .fillna(0).astype(int)
     )
-    df = df.sort_values("합계발주금액(원)", ascending=False).reset_index(drop=True)
+
+    # ★ 키워드 태깅 및 필터링
+    df["검색키워드"] = df["사업명"].apply(assign_keyword_group)
+    df = df[df["검색키워드"] != ""].copy()
+
+    logger.info(
+        f"키워드 필터링 ({', '.join(KEYWORDS)}): "
+        f"{len(items)}건 → {len(df)}건"
+    )
+
+    # ★ 그룹 순서 → 금액 내림차순 정렬
+    kw_order = {kw: i for i, kw in enumerate(KEYWORDS)}
+    df["_group_order"] = df["검색키워드"].map(kw_order)
+    df = df.sort_values(
+        ["_group_order", "합계발주금액(원)"],
+        ascending=[True, False]
+    ).reset_index(drop=True)
+    df = df.drop(columns=["_group_order"])
+
+    # ★ 검색키워드 컬럼을 앞으로 이동
+    cols = ["검색키워드"] + [c for c in df.columns if c != "검색키워드"]
+    df = df[cols]
+
     df.index += 1
+
+    # 금액 천단위 콤마
     df["합계발주금액(원)"] = df["합계발주금액(원)"].apply(lambda x: f"{x:,}")
+
+    # 키워드별 건수 로그
+    for kw in KEYWORDS:
+        cnt = (df["검색키워드"] == kw).sum()
+        if cnt > 0:
+            logger.info(f"  {kw}: {cnt}건")
+    logger.info(f"최종 합계: {len(df)}건")
 
     return df
 
@@ -221,14 +245,26 @@ def send_telegram_message(text: str):
     )
 
 
-def send_telegram_file(filepath: str, date_str: str, count: int):
+def send_telegram_file(filepath: str, date_str: str, count: int, df: pd.DataFrame = None):
     y, m, d = date_str[:4], date_str[4:6], date_str[6:]
+
+    # 키워드별 건수 요약
+    kw_summary = ""
+    if df is not None:
+        lines = []
+        for kw in KEYWORDS:
+            cnt = (df["검색키워드"] == kw).sum()
+            if cnt > 0:
+                lines.append(f"  • {kw}: {cnt}건")
+        if lines:
+            kw_summary = "\n" + "\n".join(lines) + "\n"
+
     msg = (
         f"📌 *나라장터 기술용역 발주계획*\n"
         f"📅 기준일: {y}-{m}-{d}\n"
         f"📊 수집건수: *{count}건*\n"
-        f"🔍 필터: {', '.join(KEYWORDS)}\n"
-        f"🔽 합계발주금액 높은 순 정렬"
+        f"{kw_summary}"
+        f"🔽 키워드 그룹 순서 → 금액 내림차순 정렬"
     )
     send_telegram_message(msg)
 
@@ -262,11 +298,7 @@ def main():
         )
         return
 
-    df = build_dataframe(items)
-    logger.info(f"정렬 후 전체: {len(df)}건")
-
-    df = filter_by_keywords(df)
-    logger.info(f"최종 데이터: {len(df)}건")
+    df = build_dataframe(items)  # 필터링 + 그룹정렬 모두 포함
 
     if df.empty:
         y, m, d = date_str[:4], date_str[4:6], date_str[6:]
@@ -279,7 +311,7 @@ def main():
         return
 
     filepath = save_excel(df, date_str)
-    send_telegram_file(filepath, date_str, len(df))
+    send_telegram_file(filepath, date_str, len(df), df)
     logger.info("▶ 완료")
 
 
