@@ -11,8 +11,9 @@ from datetime import datetime
 from pathlib import Path
 import pandas as pd
 
-# ── 레저조경부 2차 필터 키워드 ────────────────────────────────
+# ── 레저조경부 확정 키워드 (INCLUDE) ─────────────────────────
 INCLUDE_KEYWORDS = [
+    # ── 기존 키워드 ───────────────────────────────────────────
     "공원", "경관", "관광", "관광지", "관광자원", "관광단지",
     "지역개발", "지역활성화", "농어촌", "농촌", "어촌",
     "생태", "녹지", "산림", "숲", "수변", "자연경관",
@@ -27,70 +28,42 @@ INCLUDE_KEYWORDS = [
     "도시재생", "마을만들기", "마을조성", "마을재생",
     "권역개발", "거점개발", "지역특화",
     "체육", "스포츠", "레포츠", "수상레저",
+
+    # ── 직접 추가 요청 키워드 ─────────────────────────────────
+    "친수공간", "물순환", "친수", "은퇴자마을", "골목재생", "명소화", "명소",
+    "트레일", "여가", "레져", "워터파크", "녹화", "박람회",
+    "식재", "파크", "골프", "바람길", "해안길", "수변길", "테마로드",
+    "복원", "복지", "콘텐츠", "문화", "복합문화", "신활력", "거점",
+    "복합", "놀이터", "철도복개", "쉼터", "자연", "에코",
+    "호국원", "야생", "동물", "관찰원", "치유원",
+    "트리탑로드", "스카이로드", "로드",
+
+    # ── 기후대응/생태 ─────────────────────────────────────────
+    "기후대응도시숲", "스마트도시숲", "도시바람길숲", "미세먼지차단숲", "미세먼지", "차단숲",
+    "탄소저장숲", "탄소중립", "산림생태복원", "자생식물",
+    "훼손지복구", "대체산림조성", "사방댐", "산림경관", "산림복지",
+
+    # ── 정원/해양/어촌 ───────────────────────────────────────
+    "국가정원", "지방정원", "정원도시", "정원비엔날레",
+    "어촌뉴딜", "어촌신활력", "K-관광섬",
+    "해양레저", "갯벌생태",
+
+    # ── 마이크로 레저/복합공간 ───────────────────────────────
+    "맨발걷기", "파크골프", "복합스포츠", "무장애탐방",
+    "산림치유원", "유아숲체험", "반려견",
+    "매립장", "복개",
+
+    # ── 제도/기획/컨설팅 ─────────────────────────────────────
+    "민간공원", "장기미집행", "일몰제", "기부채납",
+    "기본구상", "타당성조사", "마스터플랜",
+    "조성계획", "경관계획", "공원녹지기본계획",
+    "활용방안",
 ]
 
+# ── 레저조경부 제외 키워드 (건설사업관리만) ──────────────────
+# 검토 탭 = 전체 - 확정 - 건설사업관리
 EXCLUDE_KEYWORDS = [
-    # ── 건설사업관리본부 ───────────────────────────────────────
-    # 별도 본부(건설사업관리1·2부, 기술지원1·2부) 업무 영역
     "건설사업관리",
-
-    # ── 수도사업본부 (상하수도1·2·3부, O&M사업부) ──────────────
-    "상수도", "하수도", "상수관", "하수관", "배수관",
-    "정수장", "수도관망", "급수", "오수", "펌프장",
-    "노후상수", "노후하수", "수도정비",
-    "수리시설", "양수장",
-
-    # ── 도로공항부 ─────────────────────────────────────────────
-    "도로건설", "도로포장", "포장공사", "도로확포장", "도로개설",
-    "공항", "활주로",
-    "군도", "도시계획시설",
-
-    # ── 수자원부 ───────────────────────────────────────────────
-    "댐", "저수지", "하천정비", "홍수", "치수", "수자원",
-    "계통확장", "계통사업", "계통공사",
-
-    # ── 철도·구조사업부 ────────────────────────────────────────
-    "철도건설", "도시철도", "교량", "터널구조", "지하철",
-
-    # ── 항만부 ─────────────────────────────────────────────────
-    "항만", "부두", "선착장", "방파제", "어항",
-
-    # ── 지반터널부 ─────────────────────────────────────────────
-    "터널", "지반조사", "연약지반", "굴착",
-
-    # ── 교통계획부 ─────────────────────────────────────────────
-    "교통영향평가", "교통계획", "신호체계", "주차",
-
-    # ── 기전시스템부 ───────────────────────────────────────────
-    "전기설비", "기계설비", "소방설비", "관망감시",
-
-    # ── 환경평가부 ─────────────────────────────────────────────
-    "환경영향평가", "소음진동", "대기오염",
-
-    # ── 에너지·환경사업부 ──────────────────────────────────────
-    "에너지사업", "산업단지", "공업단지", "산단", "온산",
-    "발전사업", "전력사업", "신재생에너지",
-    "기계엔지니어링", "플랜트", "전기공사", "전력설비",
-    "배전", "송전", "변전", "발전소", "열병합",
-    "DX", "디지털트윈", "스마트팩토리", "가상융합",
-    "ICT", "IoT", "AI시스템", "빅데이터", "클라우드",
-    "정보시스템", "소프트웨어", "데이터센터",
-
-    # ── 교육·연구 ──────────────────────────────────────────────
-    "교육운영", "교육연구", "검사문항", "학습연구", "교육종합",
-
-    # ── 경찰·행정 시설 ─────────────────────────────────────────
-    "지구대", "파출소", "경찰서",
-
-    # ── 주거·임대 (단지설계부 업무) ───────────────────────────
-    "노후임대", "임대주택", "공공임대",
-
-    # ── 기타 편의·안전 시설 (레저조경 무관) ───────────────────
-    "이동편의시설", "승강편의시설", "내진보강",
-    "소방서", "노면표시", "자연재해",
-
-    # ── 기타 명확히 무관 ───────────────────────────────────────
-    "리튬배터리", "화재안전보관", "반부조", "밀폐용",
 ]
 
 
@@ -102,16 +75,30 @@ def get_name_field(data_type: str) -> str:
 
 
 def leisure_filter(items: list[dict], name_field: str) -> list[dict]:
-    """레저조경부 2차 키워드 필터링"""
-    result = []
+    """
+    레저조경부 필터링
+    - 건설사업관리 포함 항목: 확정/검토 어디에도 포함 안 함
+    - confirmed: INCLUDE_KEYWORDS 매칭 항목
+    - review: 건설사업관리 제외 후 INCLUDE 미매칭 항목 전체
+    반환: {"confirmed": [...], "review": [...]}
+    """
+    confirmed = []
+    review = []
+
     for item in items:
         name = str(item.get(name_field, ""))
+
+        # 건설사업관리 → 완전 제외
         if any(ex in name for ex in EXCLUDE_KEYWORDS):
             continue
+
         matched = [kw for kw in INCLUDE_KEYWORDS if kw in name]
         if matched:
-            result.append({**item, "_matched": ", ".join(matched)})
-    return result
+            confirmed.append({**item, "_matched": ", ".join(matched)})
+        else:
+            review.append(item)
+
+    return {"confirmed": confirmed, "review": review}
 
 
 def df_to_records(df: pd.DataFrame) -> list[dict]:
@@ -158,21 +145,26 @@ def save_json_data(df: pd.DataFrame, date_str: str, data_type: str) -> None:
     print(f"✅ 저장: {raw_path} ({len(all_items)}건)")
 
     # ── 2. 레저조경부 필터링 결과 저장 ────────────────────────
-    filtered_items = leisure_filter(all_items, name_field)
-    filtered_path  = data_dir / f"{date_str}-{data_type}-filtered.json"
+    filtered = leisure_filter(all_items, name_field)
+    confirmed_items = filtered["confirmed"]
+    review_items    = filtered["review"]
+
+    filtered_path = data_dir / f"{date_str}-{data_type}-filtered.json"
     filtered_payload = {
-        "date":              date_str,
-        "type":              data_type,
-        "total":             len(all_items),
-        "filtered_count":    len(filtered_items),
-        "generated_at":      datetime.now().isoformat(),
-        "items":             filtered_items,
+        "date":             date_str,
+        "type":             data_type,
+        "total":            len(all_items),
+        "confirmed_count":  len(confirmed_items),
+        "review_count":     len(review_items),
+        "generated_at":     datetime.now().isoformat(),
+        "confirmed":        confirmed_items,
+        "review":           review_items,
     }
     filtered_path.write_text(
         json.dumps(filtered_payload, ensure_ascii=False, indent=2),
         encoding="utf-8"
     )
-    print(f"✅ 저장: {filtered_path} ({len(filtered_items)}건 필터링)")
+    print(f"✅ 저장: {filtered_path} (확정 {len(confirmed_items)}건 / 검토 {len(review_items)}건)")
 
     # ── 3. index.json 갱신 ────────────────────────────────────
     index_path = data_dir / "index.json"
@@ -192,8 +184,9 @@ def save_json_data(df: pd.DataFrame, date_str: str, data_type: str) -> None:
     if date_str not in summary:
         summary[date_str] = {}
     summary[date_str][data_type] = {
-        "total":    len(all_items),
-        "filtered": len(filtered_items),
+        "total":     len(all_items),
+        "confirmed": len(confirmed_items),
+        "review":    len(review_items),
     }
     index["summary"] = summary
 
