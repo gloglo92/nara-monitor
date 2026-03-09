@@ -31,7 +31,7 @@ BASE_URL  = (
 PAGE_SIZE = 999
 
 # 1차 필터 (나라장터 API 수집 범위)
-KEYWORDS = ["타당성", "기본계획", "설계", "건설사업관리"]
+KEYWORDS = ["타당성", "기본구상", "기본계획", "설계", "건설사업관리"]
 
 COLUMN_MAP = {
     "bfSpecRgstNo":    "사전규격등록번호",
