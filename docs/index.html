@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🌿 레저조경부 나라장터 모니터</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <style>
   :root {
     --green-dark: #1a4731;
@@ -467,6 +467,41 @@ function getFilteredItems(rawData, refilterKw) {
 }
 
 // ════════════════════════════════════════════════════════
+// 정렬 유틸
+// ════════════════════════════════════════════════════════
+const STAGE_ORDER = ["타당성", "기본구상", "기본계획", "설계"];
+
+function getStageGroup(name) {
+  for (const kw of STAGE_ORDER) {
+    if (name.includes(kw)) return kw;
+  }
+  return "기타";
+}
+
+function getAmtNum(item, budgetKey) {
+  return Number(String(item[budgetKey] || "0").replace(/,/g, "")) || 0;
+}
+
+// 확정: 금액 내림차순
+function sortConfirmed(items, budgetKey) {
+  return [...items].sort((a, b) => getAmtNum(b, budgetKey) - getAmtNum(a, budgetKey));
+}
+
+// 검토: 타당성→기본구상→기본계획→설계→기타 그룹 후 금액 내림차순
+function sortReview(items, budgetKey) {
+  return [...items].sort((a, b) => {
+    const nameA = a["사업명(품명)"] || a["사업명"] || "";
+    const nameB = b["사업명(품명)"] || b["사업명"] || "";
+    const gi = STAGE_ORDER.indexOf(getStageGroup(nameA));
+    const gj = STAGE_ORDER.indexOf(getStageGroup(nameB));
+    const oi = gi === -1 ? 99 : gi;
+    const oj = gj === -1 ? 99 : gj;
+    if (oi !== oj) return oi - oj;
+    return getAmtNum(b, budgetKey) - getAmtNum(a, budgetKey);
+  });
+}
+
+// ════════════════════════════════════════════════════════
 // UI 업데이트
 // ════════════════════════════════════════════════════════
 function updateSummary() {
@@ -490,17 +525,21 @@ function showTab(type, sub) {
   const btn = document.getElementById(`tab-${type}-${sub}`);
   if (btn) btn.classList.add("active");
 
+  const isSpec         = type === "spec";
+  const isConfirmedTab = sub === "confirmed";
+  const typeName       = isSpec ? "사전규격" : "발주계획";
+  const deadlineKey    = isSpec ? "의견등록마감일" : "게시일시";
+  const budgetKey      = isSpec ? "배정예산액(원)" : "합계발주금액(원)";
+  const nameKey        = getNameField(typeName);
+
   const rawData  = type === "spec" ? state.specData : state.planData;
   const filtered = getFilteredItems(rawData, state.refilterKw);
-  const items    = filtered[sub] || [];
-  const isSpec   = type === "spec";
-  const isConfirmedTab = sub === "confirmed";
+  const rawItems = filtered[sub] || [];
 
-  const dateStr = state.currentDate;
-  const typeName = isSpec ? "사전규격" : "발주계획";
-  const deadlineKey = isSpec ? "의견등록마감일" : "게시일시";
-  const budgetKey   = isSpec ? "배정예산액(원)" : "합계발주금액(원)";
-  const nameKey     = getNameField(typeName);
+  // 확정: 금액 내림차순 / 검토: 타당성→기본구상→기본계획→설계→기타 그룹 + 금액 내림차순
+  const items = isConfirmedTab
+    ? sortConfirmed(rawItems, budgetKey)
+    : sortReview(rawItems, budgetKey);
 
   const today = new Date();
 
@@ -610,28 +649,64 @@ function downloadExcel() {
   const wb = XLSX.utils.book_new();
   const dateStr = state.currentDate;
 
-  const buildWS = (rawData, label) => {
+  const applyStyle = (ws, headerColor, colWidths) => {
+    const range = XLSX.utils.decode_range(ws["!ref"]);
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const addr = XLSX.utils.encode_cell({ r: 0, c: C });
+      if (!ws[addr]) continue;
+      ws[addr].s = {
+        fill: { fgColor: { rgb: headerColor } },
+        font: { color: { rgb: "FFFFFF" }, bold: true },
+        alignment: { horizontal: "center", vertical: "center" },
+        border: { top:{style:"thin",color:{rgb:"CCCCCC"}}, bottom:{style:"thin",color:{rgb:"CCCCCC"}}, left:{style:"thin",color:{rgb:"CCCCCC"}}, right:{style:"thin",color:{rgb:"CCCCCC"}} }
+      };
+    }
+    for (let R = 1; R <= range.e.r; R++) {
+      const isEven = R % 2 === 0;
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        const addr = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws[addr]) ws[addr] = { t: "s", v: "" };
+        ws[addr].s = {
+          fill: { fgColor: { rgb: isEven ? "F2F7F2" : "FFFFFF" } },
+          alignment: { vertical: "center" },
+          border: { top:{style:"thin",color:{rgb:"DDDDDD"}}, bottom:{style:"thin",color:{rgb:"DDDDDD"}}, left:{style:"thin",color:{rgb:"DDDDDD"}}, right:{style:"thin",color:{rgb:"DDDDDD"}} }
+        };
+      }
+    }
+    ws["!cols"] = colWidths;
+    ws["!rows"] = [{ hpt: 22 }];
+  };
+
+  const buildWS = (rawData, label, headerColor) => {
     if (!rawData) return;
-    const f   = getFilteredItems(rawData, state.refilterKw);
+    const f         = getFilteredItems(rawData, state.refilterKw);
     const nameField = getNameField(rawData.type);
+    const amtField  = rawData.type === "사전규격" ? "배정예산액(원)" : "합계발주금액(원)";
+    const dateField = rawData.type === "사전규격" ? "의견등록마감일" : "게시일시";
+    const colWidths = [{ wch:6 },{ wch:55 },{ wch:22 },{ wch:18 },{ wch:14 },{ wch:20 }];
 
-    const toRows = (items, tag) => items.map((r, i) => ({
-      "순위": i + 1,
-      [nameField]: r[nameField] || "",
-      "발주기관": r["발주기관"] || r["수요기관"] || "",
-      "예산(원)": r["배정예산액(원)"] || r["합계발주금액(원)"] || "",
-      "마감/게시일": r["의견등록마감일"] || r["게시일시"] || "",
-      [tag]: tag === "매칭키워드" ? (r._matched || "") : "",
-    }));
+    const toRows = (items, kwTag) =>
+      items.map((r, i) => ({
+        "순위": i + 1,
+        [nameField]: r[nameField] || "",
+        "발주기관": r["발주기관"] || r["수요기관"] || "",
+        "예산(원)": r[amtField] || "",
+        "마감/게시일": (r[dateField] || "").slice(0, 10),
+        [kwTag]: kwTag === "매칭키워드" ? (r._matched || "") : "",
+      }));
 
-    const ws1 = XLSX.utils.json_to_sheet(toRows(f.confirmed, "매칭키워드"));
-    const ws2 = XLSX.utils.json_to_sheet(toRows(f.review, "비고(미분류)"));
+    // 확정: 금액 내림차순 / 검토: 그룹(타당성→기본구상→기본계획→설계→기타) + 금액순
+    const ws1 = XLSX.utils.json_to_sheet(toRows(sortConfirmed(f.confirmed, amtField), "매칭키워드"));
+    applyStyle(ws1, headerColor, colWidths);
     XLSX.utils.book_append_sheet(wb, ws1, `${label}-확정`);
+
+    const ws2 = XLSX.utils.json_to_sheet(toRows(sortReview(f.review, amtField), "비고(미분류)"));
+    applyStyle(ws2, headerColor, colWidths);
     XLSX.utils.book_append_sheet(wb, ws2, `${label}-검토`);
   };
 
-  buildWS(state.specData, "사전규격");
-  buildWS(state.planData, "발주계획");
+  buildWS(state.specData, "사전규격", "1F4E79"); // 파란색
+  buildWS(state.planData, "발주계획", "1B5E20"); // 초록색
 
   const y = dateStr.slice(0,4), m = dateStr.slice(4,6), d = dateStr.slice(6);
   XLSX.writeFile(wb, `레저조경부_나라장터_${y}${m}${d}.xlsx`);
