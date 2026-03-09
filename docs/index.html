@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌿 레저조경부 나라장터 모니터</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --green-dark: #1a4731;
+    --green: #1f5c2e;
+    --green-mid: #2e7d4f;
+    --green-light: #e8f5ec;
+    --amber: #7b4200;
+    --amber-light: #fff8ec;
+    --blue: #1a5276;
+    --gray: #64748b;
+    --border: #e2e8f0;
+    --bg: #f1f5f9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; background: var(--bg); color: #1e293b; font-size: 13px; }
+
+  /* ── 로그인 화면 ── */
+  #login-screen {
+    position: fixed; inset: 0; background: linear-gradient(135deg, #0f2d1a 0%, #1f5c2e 100%);
+    display: flex; align-items: center; justify-content: center; z-index: 1000;
+  }
+  .login-box {
+    background: white; border-radius: 20px; padding: 48px 40px; width: 360px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.4); text-align: center;
+  }
+  .login-box .logo { font-size: 48px; margin-bottom: 12px; }
+  .login-box h1 { font-size: 20px; color: var(--green); margin-bottom: 6px; }
+  .login-box p  { font-size: 12px; color: var(--gray); margin-bottom: 28px; }
+  .login-box input {
+    width: 100%; padding: 12px 16px; border: 2px solid var(--border);
+    border-radius: 12px; font-size: 14px; text-align: center; letter-spacing: 4px;
+    outline: none; transition: border 0.2s;
+  }
+  .login-box input:focus { border-color: var(--green-mid); }
+  .login-box button {
+    width: 100%; margin-top: 16px; padding: 13px; background: var(--green);
+    color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .login-box button:hover { background: var(--green-dark); }
+  .login-error { color: #e53e3e; font-size: 12px; margin-top: 10px; display: none; }
+
+  /* ── 메인 레이아웃 ── */
+  #app { display: none; min-height: 100vh; }
+  .header {
+    background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
+    padding: 16px 24px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  .header-logo { font-size: 28px; }
+  .header-title { flex: 1; }
+  .header-title h1 { color: white; font-size: 17px; font-weight: bold; }
+  .header-title p  { color: #a7d9b5; font-size: 11px; margin-top: 2px; }
+  .header-status { display: flex; align-items: center; gap: 8px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .status-text { color: #a7d9b5; font-size: 11px; }
+  .logout-btn {
+    background: rgba(255,255,255,0.15); color: white; border: none;
+    padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px;
+  }
+
+  .container { max-width: 1300px; margin: 0 auto; padding: 20px 16px; }
+
+  /* ── 날짜 선택 바 ── */
+  .date-bar {
+    background: white; border-radius: 16px; border: 1px solid var(--border);
+    padding: 14px 20px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .date-bar label { font-weight: bold; color: var(--green); font-size: 12px; white-space: nowrap; }
+  .date-select {
+    padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 12px; cursor: pointer; background: white;
+  }
+  .refresh-btn {
+    background: var(--green); color: white; border: none;
+    padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;
+  }
+  .today-badge {
+    background: #dcfce7; color: #166534; font-size: 11px; font-weight: bold;
+    padding: 4px 10px; border-radius: 20px; margin-left: auto;
+  }
+
+  /* ── 요약 카드 ── */
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .summary-card {
+    background: white; border-radius: 16px; padding: 18px 16px; text-align: center;
+    border: 1px solid var(--border); cursor: pointer; transition: all 0.2s;
+  }
+  .summary-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+  .summary-card.active { border-color: var(--green-mid); box-shadow: 0 0 0 3px rgba(46,125,79,0.15); }
+  .summary-card .count { font-size: 28px; font-weight: 900; }
+  .summary-card .label { font-size: 12px; font-weight: bold; margin-top: 4px; }
+  .summary-card .sub   { font-size: 10px; color: var(--gray); margin-top: 2px; }
+  .card-spec-c { color: var(--green); }
+  .card-spec-r { color: #d97706; }
+  .card-plan-c { color: #7c3aed; }
+  .card-plan-r { color: #be185d; }
+
+  /* ── 탭 ── */
+  .tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .tab-btn {
+    padding: 8px 18px; border-radius: 10px; border: 1px solid var(--border);
+    background: white; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tab-btn.active { background: var(--green); color: white; border-color: var(--green); }
+  .tab-btn .badge { background: rgba(255,255,255,0.3); padding: 1px 7px; border-radius: 10px; font-size: 11px; }
+  .tab-btn:not(.active) .badge { background: #f1f5f9; color: var(--gray); }
+
+  /* ── 테이블 ── */
+  .table-wrap { background: white; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
+  .table-toolbar {
+    padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .table-toolbar .type-badge {
+    font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 20px;
+  }
+  .badge-spec { background: #dbeafe; color: #1e40af; }
+  .badge-plan { background: #ede9fe; color: #5b21b6; }
+  .search-input {
+    padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 12px; width: 200px; outline: none;
+  }
+  .search-input:focus { border-color: var(--green-mid); }
+  .download-btn {
+    margin-left: auto; background: #1d4ed8; color: white; border: none;
+    padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;
+  }
+  .refilter-btn {
+    background: var(--green-mid); color: white; border: none;
+    padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--green); }
+  thead th { color: white; padding: 10px 12px; text-align: left; font-size: 11px; white-space: nowrap; }
+  thead.plan-head tr { background: #5b21b6; }
+  tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
+  tbody tr:hover { background: #f8fafc; }
+  tbody tr.urgent { background: #fff1f0; border-left: 3px solid #f87171; }
+  tbody tr.soon   { background: #fffbeb; border-left: 3px solid #fbbf24; }
+  tbody td { padding: 9px 12px; font-size: 12px; vertical-align: middle; }
+  .td-no { color: #94a3b8; font-weight: bold; text-align: center; width: 36px; }
+  .td-name { max-width: 340px; line-height: 1.5; }
+  .td-num { text-align: right; font-weight: 600; white-space: nowrap; }
+  .td-center { text-align: center; white-space: nowrap; color: var(--gray); }
+  .td-keyword { color: var(--blue); font-size: 11px; }
+  .td-reason  { color: var(--amber); font-size: 11px; font-style: italic; }
+  .link-btn { color: #3b82f6; text-decoration: underline; font-size: 11px; cursor: pointer; }
+  .empty-row { text-align: center; color: var(--gray); padding: 40px; font-size: 13px; }
+
+  /* ── 범례 ── */
+  .legend { display: flex; gap: 16px; font-size: 11px; color: var(--gray); padding: 8px 0; flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .dot-red    { width: 10px; height: 10px; border-radius: 2px; background: #fca5a5; border-left: 3px solid #f87171; }
+  .dot-yellow { width: 10px; height: 10px; border-radius: 2px; background: #fde68a; border-left: 3px solid #fbbf24; }
+
+  /* ── 로딩 ── */
+  .loading { text-align: center; padding: 60px; color: var(--gray); }
+  .spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid #e2e8f0; border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── 재필터링 패널 ── */
+  .refilter-panel {
+    background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px;
+    padding: 12px 16px; margin-bottom: 12px; display: none;
+  }
+  .refilter-panel label { font-size: 12px; font-weight: bold; color: var(--green); }
+  .refilter-panel textarea {
+    width: 100%; margin-top: 6px; padding: 8px 10px; border: 1px solid #bbf7d0;
+    border-radius: 8px; font-size: 11px; resize: vertical; height: 60px; outline: none;
+    font-family: inherit;
+  }
+  .refilter-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .btn-apply { background: var(--green); color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+  .btn-reset { background: white; color: var(--gray); border: 1px solid var(--border); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+
+  @media (max-width: 640px) {
+    .header { padding: 12px 16px; }
+    .header-title h1 { font-size: 14px; }
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .search-input { width: 140px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── 로그인 화면 ── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="logo">🌿</div>
+    <h1>레저조경부 나라장터 모니터</h1>
+    <p>부서 전용 시스템 · 비밀번호를 입력하세요</p>
+    <input type="password" id="pw-input" placeholder="••••••" maxlength="20"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">접속</button>
+    <div class="login-error" id="login-error">비밀번호가 올바르지 않습니다</div>
+  </div>
+</div>
+
+<!-- ── 메인 앱 ── -->
+<div id="app">
+  <div class="header">
+    <div class="header-logo">🌿</div>
+    <div class="header-title">
+      <h1>레저조경부 나라장터 모니터</h1>
+      <p>사전규격 · 발주계획 자동 수집 및 필터링</p>
+    </div>
+    <div class="header-status">
+      <div class="status-dot"></div>
+      <span class="status-text" id="last-update">로딩 중...</span>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+  </div>
+
+  <div class="container">
+
+    <!-- 날짜 선택 -->
+    <div class="date-bar">
+      <label>📅 날짜 선택</label>
+      <select class="date-select" id="date-select" onchange="loadDate(this.value)">
+        <option value="">로딩 중...</option>
+      </select>
+      <button class="refresh-btn" onclick="loadIndex()">🔄 새로고침</button>
+      <div class="today-badge" id="today-badge">최신 데이터</div>
+    </div>
+
+    <!-- 요약 카드 -->
+    <div class="summary-grid" id="summary-grid">
+      <div class="summary-card" onclick="showTab('spec','confirmed')">
+        <div class="count card-spec-c" id="cnt-spec-c">-</div>
+        <div class="label">📋 사전규격 확정</div>
+        <div class="sub">키워드 매칭</div>
+      </div>
+      <div class="summary-card" onclick="showTab('spec','review')">
+        <div class="count card-spec-r" id="cnt-spec-r">-</div>
+        <div class="label">📋 사전규격 검토</div>
+        <div class="sub">AI 추천</div>
+      </div>
+      <div class="summary-card" onclick="showTab('plan','confirmed')">
+        <div class="count card-plan-c" id="cnt-plan-c">-</div>
+        <div class="label">📌 발주계획 확정</div>
+        <div class="sub">키워드 매칭</div>
+      </div>
+      <div class="summary-card" onclick="showTab('plan','review')">
+        <div class="count card-plan-r" id="cnt-plan-r">-</div>
+        <div class="label">📌 발주계획 검토</div>
+        <div class="sub">AI 추천</div>
+      </div>
+    </div>
+
+    <!-- 탭 -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-spec-confirmed" onclick="showTab('spec','confirmed')">
+        📋 사전규격 확정 <span class="badge" id="tab-cnt-spec-confirmed">0</span>
+      </button>
+      <button class="tab-btn" id="tab-spec-review" onclick="showTab('spec','review')">
+        📋 사전규격 검토 <span class="badge" id="tab-cnt-spec-review">0</span>
+      </button>
+      <button class="tab-btn" id="tab-plan-confirmed" onclick="showTab('plan','confirmed')">
+        📌 발주계획 확정 <span class="badge" id="tab-cnt-plan-confirmed">0</span>
+      </button>
+      <button class="tab-btn" id="tab-plan-review" onclick="showTab('plan','review')">
+        📌 발주계획 검토 <span class="badge" id="tab-cnt-plan-review">0</span>
+      </button>
+    </div>
+
+    <!-- 범례 -->
+    <div class="legend">
+      <span><span class="dot-red"></span> 마감 2일 이내</span>
+      <span><span class="dot-yellow"></span> 마감 4일 이내</span>
+    </div>
+
+    <!-- 재필터링 패널 -->
+    <div class="refilter-panel" id="refilter-panel">
+      <label>🔍 키워드 재필터링 (쉼표로 구분, 공백 포함 검색 가능)</label>
+      <textarea id="refilter-input" placeholder="예: 공원, 산림, 관광단지, 도시재생"></textarea>
+      <div class="refilter-actions">
+        <button class="btn-apply" onclick="applyRefilter()">적용</button>
+        <button class="btn-reset" onclick="resetRefilter()">초기화</button>
+      </div>
+    </div>
+
+    <!-- 테이블 영역 -->
+    <div id="table-area">
+      <div class="loading"><div class="spinner"></div><br>데이터 로딩 중...</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// 설정 — 비밀번호 변경은 여기서
+// ════════════════════════════════════════════════════════
+const PASSWORD_HASH = hashStr("leisure2026!");  // ← 비밀번호 변경 시 이 문자열만 수정
+
+function hashStr(s) {
+  // 단순 해시 (클라이언트 전용)
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = Math.imul(31, h) + s.charCodeAt(i) | 0;
+  }
+  return String(h);
+}
+
+// GitHub Pages 경로 자동 감지
+const BASE_DATA = location.hostname === "localhost"
+  ? "./data"
+  : location.pathname.replace(/\/[^/]*$/, "") + "/data";
+
+// ── 키워드 설정 ──────────────────────────────────────────
+const INCLUDE_KW = [
+  "공원","경관","관광","관광지","관광자원","관광단지","지역개발","지역활성화","농어촌","농촌","어촌",
+  "생태","녹지","산림","숲","수변","자연경관","에코파크","생태공원","정원","치유의숲","산림치유","도시숲",
+  "조경","경관설계","아름다운거리","가로경관","경관개선","가로수",
+  "테마파크","테마","레저","힐링","리조트","휴양","스카이브릿지","전망대","출렁다리","짚라인","어드벤처","유원지","캠핑","글램핑",
+  "둘레길","탐방로","산책로","트레킹","자전거길","그린웨이",
+  "해양관광","해안","갯벌","섬관광","강변","해변",
+  "문화관광","문화재","역사문화","유산","철도역사","근대역사","역사공원",
+  "도시재생","마을만들기","마을조성","마을재생","권역개발","거점개발","지역특화",
+  "체육","스포츠","레포츠","수상레저",
+];
+const EXCLUDE_KW = [
+  // ── 건설사업관리본부 ───────────────────────────────────────
+  "건설사업관리",
+
+  // ── 수도사업본부 (상하수도1·2·3부, O&M사업부) ──────────────
+  "상수도","하수도","상수관","하수관","배수관",
+  "정수장","수도관망","급수","오수","펌프장",
+  "노후상수","노후하수","수도정비",
+  "수리시설","양수장",
+
+  // ── 도로공항부 ─────────────────────────────────────────────
+  "도로건설","도로포장","포장공사","도로확포장","도로개설",
+  "공항","활주로",
+
+  // ── 수자원부 ───────────────────────────────────────────────
+  "댐","저수지","하천정비","홍수","치수","수자원",
+
+  // ── 철도·구조사업부 ────────────────────────────────────────
+  "철도건설","도시철도","교량","터널구조","지하철",
+
+  // ── 항만부 ─────────────────────────────────────────────────
+  "항만","부두","선착장","방파제","어항",
+
+  // ── 지반터널부 ─────────────────────────────────────────────
+  "터널","지반조사","연약지반","굴착",
+
+  // ── 교통계획부 ─────────────────────────────────────────────
+  "교통영향평가","교통계획","신호체계","주차",
+
+  // ── 기전시스템부 ───────────────────────────────────────────
+  "전기설비","기계설비","소방설비","관망감시",
+
+  // ── 환경평가부 ─────────────────────────────────────────────
+  "환경영향평가","소음진동","대기오염",
+
+  // ── 기타 편의·안전 시설 (레저조경 무관) ───────────────────
+  "이동편의시설","승강편의시설","내진보강",
+  "소방서","노면표시","자연재해",
+
+  // ── 기타 명확히 무관 ───────────────────────────────────────
+  "리튬배터리","화재안전보관","반부조","밀폐용",
+];
+
+// ── 상태 ─────────────────────────────────────────────────
+let state = {
+  currentDate: "",
+  specData: null,
+  planData: null,
+  currentTab: { type: "spec", sub: "confirmed" },
+  refilterKw: null,
+};
+
+// ════════════════════════════════════════════════════════
+// 인증
+// ════════════════════════════════════════════════════════
+function doLogin() {
+  const pw = document.getElementById("pw-input").value;
+  if (hashStr(pw) === PASSWORD_HASH) {
+    sessionStorage.setItem("auth", "1");
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    loadIndex();
+  } else {
+    document.getElementById("login-error").style.display = "block";
+  }
+}
+function doLogout() {
+  sessionStorage.removeItem("auth");
+  location.reload();
+}
+// 세션 유지
+if (sessionStorage.getItem("auth") === "1") {
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  loadIndex();
+}
+
+// ════════════════════════════════════════════════════════
+// 데이터 로딩
+// ════════════════════════════════════════════════════════
+async function loadIndex() {
+  try {
+    const res  = await fetch(`${BASE_DATA}/index.json?t=${Date.now()}`);
+    const idx  = await res.json();
+    const sel  = document.getElementById("date-select");
+    sel.innerHTML = "";
+    (idx.dates || []).forEach((d, i) => {
+      const opt  = document.createElement("option");
+      opt.value  = d;
+      const y = d.slice(0,4), m = d.slice(4,6), day = d.slice(6);
+      opt.text   = `${y}-${m}-${day}${i === 0 ? " (최신)" : ""}`;
+      sel.appendChild(opt);
+    });
+    const latest = idx.latest || (idx.dates || [])[0];
+    if (latest) loadDate(latest);
+    document.getElementById("last-update").textContent =
+      `최신: ${latest ? latest.slice(0,4)+"-"+latest.slice(4,6)+"-"+latest.slice(6) : "-"}`;
+  } catch(e) {
+    document.getElementById("table-area").innerHTML =
+      `<div class="loading">⚠️ index.json을 불러올 수 없습니다.<br><small>${e.message}</small></div>`;
+  }
+}
+
+async function loadDate(dateStr) {
+  if (!dateStr) return;
+  state.currentDate = dateStr;
+  state.refilterKw  = null;
+  document.getElementById("table-area").innerHTML =
+    `<div class="loading"><div class="spinner"></div><br>데이터 불러오는 중...</div>`;
+
+  const [specRes, planRes] = await Promise.allSettled([
+    fetch(`${BASE_DATA}/${dateStr}-사전규격.json?t=${Date.now()}`),
+    fetch(`${BASE_DATA}/${dateStr}-발주계획.json?t=${Date.now()}`),
+  ]);
+
+  state.specData = specRes.status === "fulfilled" && specRes.value.ok
+    ? await specRes.value.json() : null;
+  state.planData = planRes.status === "fulfilled" && planRes.value.ok
+    ? await planRes.value.json() : null;
+
+  updateSummary();
+  showTab(state.currentTab.type, state.currentTab.sub);
+}
+
+// ════════════════════════════════════════════════════════
+// 필터링 유틸
+// ════════════════════════════════════════════════════════
+function getNameField(type) {
+  return type === "사전규격" ? "사업명(품명)" : "사업명";
+}
+function isConfirmed(name, kwList) {
+  const kw = kwList || INCLUDE_KW;
+  if (EXCLUDE_KW.some(k => name.includes(k))) return false;
+  return kw.some(k => name.includes(k));
+}
+function matchedKw(name, kwList) {
+  return (kwList || INCLUDE_KW).filter(k => name.includes(k)).join(", ");
+}
+
+function getFilteredItems(rawData, refilterKw) {
+  if (!rawData) return { confirmed: [], review: [] };
+  const nameField = getNameField(rawData.type);
+  const kw = refilterKw || INCLUDE_KW;
+
+  const confirmed = [], review = [];
+  (rawData.items || []).forEach(item => {
+    const name = String(item[nameField] || "");
+    const mk   = matchedKw(name, kw);
+    if (mk) confirmed.push({ ...item, _matched: mk });
+    else    review.push(item);
+  });
+  return { confirmed, review };
+}
+
+// ════════════════════════════════════════════════════════
+// UI 업데이트
+// ════════════════════════════════════════════════════════
+function updateSummary() {
+  const sf = getFilteredItems(state.specData, state.refilterKw);
+  const pf = getFilteredItems(state.planData, state.refilterKw);
+
+  document.getElementById("cnt-spec-c").textContent = sf.confirmed.length;
+  document.getElementById("cnt-spec-r").textContent = sf.review.length;
+  document.getElementById("cnt-plan-c").textContent = pf.confirmed.length;
+  document.getElementById("cnt-plan-r").textContent = pf.review.length;
+
+  document.getElementById("tab-cnt-spec-confirmed").textContent = sf.confirmed.length;
+  document.getElementById("tab-cnt-spec-review").textContent    = sf.review.length;
+  document.getElementById("tab-cnt-plan-confirmed").textContent = pf.confirmed.length;
+  document.getElementById("tab-cnt-plan-review").textContent    = pf.review.length;
+}
+
+function showTab(type, sub) {
+  state.currentTab = { type, sub };
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  const btn = document.getElementById(`tab-${type}-${sub}`);
+  if (btn) btn.classList.add("active");
+
+  const rawData  = type === "spec" ? state.specData : state.planData;
+  const filtered = getFilteredItems(rawData, state.refilterKw);
+  const items    = filtered[sub] || [];
+  const isSpec   = type === "spec";
+  const isConfirmedTab = sub === "confirmed";
+
+  const dateStr = state.currentDate;
+  const typeName = isSpec ? "사전규격" : "발주계획";
+  const deadlineKey = isSpec ? "의견등록마감일" : "게시일시";
+  const budgetKey   = isSpec ? "배정예산액(원)" : "합계발주금액(원)";
+  const nameKey     = getNameField(typeName);
+
+  const today = new Date();
+
+  let rows = items.map((row, i) => {
+    const name   = row[nameKey] || "";
+    const budget = row[budgetKey] || "";
+    const dl     = row[deadlineKey] || "";
+    const url    = row["규격서URL"] || "";
+    const org    = row["발주기관"] || row["수요기관"] || "";
+    const extra  = isConfirmedTab ? (row._matched || "") : "";
+
+    let trClass = "";
+    if (dl && isSpec) {   // 사전규격만 마감일 기준 색상 적용 (발주계획 게시일은 과거날짜라 제외)
+      const diff = (new Date(dl) - today) / 86400000;
+      if (diff <= 2) trClass = "urgent";
+      else if (diff <= 4) trClass = "soon";
+    }
+
+    const budgetNum = Number(String(budget).replace(/,/g, ""));
+    const budgetFmt = isNaN(budgetNum) || budgetNum === 0 ? "-" : budgetNum.toLocaleString();
+    const dlShort   = String(dl).slice(0, 10);
+    const urlCell   = url ? `<a class="link-btn" href="${url}" target="_blank">링크</a>` : `-`;
+    const extraCell = isConfirmedTab
+      ? `<td class="td-keyword">${escHtml(extra)}</td>`
+      : `<td class="td-reason">${escHtml(extra)}</td>`;
+
+    return `<tr class="${trClass}">
+      <td class="td-no">${i + 1}</td>
+      <td class="td-name">${escHtml(name)}</td>
+      <td>${escHtml(org)}</td>
+      <td class="td-num">${budgetFmt}</td>
+      <td class="td-center">${dlShort}</td>
+      ${extraCell}
+      <td class="td-center">${urlCell}</td>
+    </tr>`;
+  }).join("");
+
+  if (!rows) rows = `<tr><td colspan="7" class="empty-row">해당 항목이 없습니다.</td></tr>`;
+
+  const headClass  = isSpec ? "" : "plan-head";
+  const badgeClass = isSpec ? "badge-spec" : "badge-plan";
+  const tabLabel   = `${isSpec ? "📋 사전규격" : "📌 발주계획"} — ${isConfirmedTab ? "✅ 확정" : "🔍 검토 필요"}`;
+  const dlLabel    = isSpec ? "마감일" : "게시일시";
+
+  document.getElementById("table-area").innerHTML = `
+    <div class="table-wrap">
+      <div class="table-toolbar">
+        <span class="type-badge ${badgeClass}">${tabLabel}</span>
+        <input class="search-input" type="text" placeholder="사업명 검색..." oninput="searchTable(this.value)" id="search-box">
+        <button class="refilter-btn" onclick="toggleRefilter()">🔍 재필터링</button>
+        <button class="download-btn" onclick="downloadExcel()">⬇️ 엑셀</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="main-table">
+          <thead class="${headClass}">
+            <tr>
+              <th>No.</th><th>사업명</th><th>발주기관</th><th>예산(원)</th>
+              <th>${dlLabel}</th>
+              <th>${isConfirmedTab ? "매칭 키워드" : "비고(미분류)"}</th>
+              <th>규격서</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function searchTable(q) {
+  const rows = document.querySelectorAll("#table-body tr");
+  const kw   = q.toLowerCase();
+  rows.forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(kw) ? "" : "none";
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// 재필터링
+// ════════════════════════════════════════════════════════
+function toggleRefilter() {
+  const panel = document.getElementById("refilter-panel");
+  panel.style.display = panel.style.display === "block" ? "none" : "block";
+}
+function applyRefilter() {
+  const raw  = document.getElementById("refilter-input").value;
+  const kwList = raw.split(/[,\n]/).map(s => s.trim()).filter(Boolean);
+  state.refilterKw = kwList.length > 0 ? kwList : null;
+  updateSummary();
+  showTab(state.currentTab.type, state.currentTab.sub);
+}
+function resetRefilter() {
+  state.refilterKw = null;
+  document.getElementById("refilter-input").value = "";
+  updateSummary();
+  showTab(state.currentTab.type, state.currentTab.sub);
+}
+
+// ════════════════════════════════════════════════════════
+// 엑셀 다운로드
+// ════════════════════════════════════════════════════════
+function downloadExcel() {
+  const wb = XLSX.utils.book_new();
+  const dateStr = state.currentDate;
+
+  const buildWS = (rawData, label) => {
+    if (!rawData) return;
+    const f   = getFilteredItems(rawData, state.refilterKw);
+    const nameField = getNameField(rawData.type);
+
+    const toRows = (items, tag) => items.map((r, i) => ({
+      "순위": i + 1,
+      [nameField]: r[nameField] || "",
+      "발주기관": r["발주기관"] || r["수요기관"] || "",
+      "예산(원)": r["배정예산액(원)"] || r["합계발주금액(원)"] || "",
+      "마감/게시일": r["의견등록마감일"] || r["게시일시"] || "",
+      [tag]: tag === "매칭키워드" ? (r._matched || "") : "",
+    }));
+
+    const ws1 = XLSX.utils.json_to_sheet(toRows(f.confirmed, "매칭키워드"));
+    const ws2 = XLSX.utils.json_to_sheet(toRows(f.review, "비고(미분류)"));
+    XLSX.utils.book_append_sheet(wb, ws1, `${label}-확정`);
+    XLSX.utils.book_append_sheet(wb, ws2, `${label}-검토`);
+  };
+
+  buildWS(state.specData, "사전규격");
+  buildWS(state.planData, "발주계획");
+
+  const y = dateStr.slice(0,4), m = dateStr.slice(4,6), d = dateStr.slice(6);
+  XLSX.writeFile(wb, `레저조경부_나라장터_${y}${m}${d}.xlsx`);
+}
+</script>
+</body>
+</html>
