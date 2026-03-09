@@ -1,7 +1,7 @@
 """
-나라장터 발주계획현황 (기술용역) 데이터 수집 및 정렬 스크립트 v2
+나라장터 발주계획현황 (기술용역) 데이터 수집 및 정렬 스크립트
 - 엔드포인트: /ao/OrderPlanSttusService/getOrderPlanSttusListServcPPSSrch
-- 키워드 그룹 순서 → 금액 내림차순 정렬
+- 매일 전일 게시 데이터를 수집하여 Excel로 저장 후 텔레그램 발송
 """
 
 import os
@@ -30,22 +30,23 @@ BASE_URL = (
 )
 PAGE_SIZE = 999
 
-# ★ 키워드 순서 중요 (앞 키워드 우선 배치, 중복 시 첫 번째 그룹에만 포함)
-KEYWORDS = ["타당성", "기본구상", "기본계획", "설계", "건설사업관리"]
+# ★ 사업명 키워드 필터
+KEYWORDS = ["타당성", "기본계획", "설계", "건설사업관리"]
 
+# 응답 필드 → 한글 컬럼 매핑 (공식 문서 응답 필드 기준)
 COLUMN_MAP = {
     "bizNm":          "사업명",
     "orderInsttNm":   "발주기관",
     "totlmngInsttNm": "총괄기관",
     "jrsdctnDivNm":   "소관구분",
-    "sumOrderAmt":    "합계발주금액(원)",
+    "sumOrderAmt":    "합계발주금액(원)",      # ★ orderContrctAmt 아님
     "orderYear":      "발주년도",
     "orderMnth":      "발주월",
     "cnsttyDivNm":    "공종구분",
     "cntrctMthdNm":   "계약방법",
     "prcrmntMethd":   "조달방식",
     "bsnsTyNm":       "업무유형",
-    "nticeDt":        "게시일시",
+    "nticeDt":        "게시일시",              # ★ rgstDt 아님
     "deptNm":         "담당부서",
     "ofclNm":         "담당자",
     "telNo":          "전화번호",
@@ -54,6 +55,7 @@ COLUMN_MAP = {
 
 
 def get_target_date_range() -> tuple[str, str, str]:
+    """전일 00:00 ~ 23:59 범위 반환"""
     target = os.environ.get("TARGET_DATE", "").strip()
     if target and len(target) == 8:
         base = datetime.strptime(target, "%Y%m%d")
@@ -67,8 +69,14 @@ def get_target_date_range() -> tuple[str, str, str]:
 
 
 def fetch_all_pages(start_dt: str, end_dt: str) -> list[dict]:
+    """페이징 처리하여 전체 데이터 수집"""
     all_items = []
     page = 1
+
+    # 발주월 범위: 당해연도 전체(1~12월) → 발주월 필터가 게시일 수집을 막지 않도록
+    year = start_dt[:4]
+    order_bgn_ym = f"{year}01"
+    order_end_ym = f"{year}12"
 
     while True:
         url = (
@@ -79,6 +87,8 @@ def fetch_all_pages(start_dt: str, end_dt: str) -> list[dict]:
             f"&type=json"
             f"&inqryBgnDt={start_dt}"
             f"&inqryEndDt={end_dt}"
+            f"&orderBgnYm={order_bgn_ym}"
+            f"&orderEndYm={order_end_ym}"
         )
 
         try:
@@ -127,16 +137,23 @@ def fetch_all_pages(start_dt: str, end_dt: str) -> list[dict]:
     return all_items
 
 
-def assign_keyword_group(name: str) -> str:
-    """사업명에서 첫 번째 매칭 키워드 반환"""
-    for kw in KEYWORDS:
-        if kw in name:
-            return kw
-    return ""
+def filter_by_keywords(df: pd.DataFrame) -> pd.DataFrame:
+    """사업명에 키워드가 포함된 행만 필터링"""
+    if df.empty:
+        return df
+    pattern = "|".join(KEYWORDS)
+    mask = df["사업명"].str.contains(pattern, na=False)
+    filtered = df[mask].reset_index(drop=True)
+    filtered.index += 1
+    logger.info(
+        f"키워드 필터링 ({', '.join(KEYWORDS)}): "
+        f"{len(df)}건 → {len(filtered)}건"
+    )
+    return filtered
 
 
 def build_dataframe(items: list[dict]) -> pd.DataFrame:
-    """DataFrame 변환 → 키워드 필터·태깅 → 그룹순서+금액 내림차순 정렬"""
+    """DataFrame 변환 및 발주도급금액 내림차순 정렬"""
     if not items:
         return pd.DataFrame()
 
@@ -148,56 +165,20 @@ def build_dataframe(items: list[dict]) -> pd.DataFrame:
 
     df = df[list(COLUMN_MAP.keys())].rename(columns=COLUMN_MAP)
 
-    # 금액 숫자 변환
+    # 금액 숫자 변환 → 정렬 → 천단위 콤마
     df["합계발주금액(원)"] = (
         pd.to_numeric(df["합계발주금액(원)"], errors="coerce")
         .fillna(0).astype(int)
     )
-
-    # ★ 키워드 태깅
-    df["검색키워드"] = df["사업명"].apply(assign_keyword_group)
-
-    # ★ 키워드 없는 행 제거
-    df = df[df["검색키워드"] != ""].copy()
-
-    # ★ 중복 공고 제거: 공고번호가 있는 행만 대상 (빈값은 제거 제외)
-    kw_order = {kw: i for i, kw in enumerate(KEYWORDS)}
-    df["_kw_order"] = df["검색키워드"].map(kw_order)
-    df["_has_ntce"] = df["공고번호"].astype(str).str.strip().replace("", pd.NA).notna()
-
-    has_ntce  = df[df["_has_ntce"]].sort_values(["공고번호", "_kw_order"])
-    has_ntce  = has_ntce.drop_duplicates(subset="공고번호", keep="first")
-    no_ntce   = df[~df["_has_ntce"]]
-
-    df = pd.concat([has_ntce, no_ntce], ignore_index=True)
-    df = df.drop(columns=["_kw_order", "_has_ntce"])
-
-    # ★ 그룹 순서 → 금액 내림차순 정렬
-    df["_group_order"] = df["검색키워드"].map(kw_order)
-    df = df.sort_values(
-        ["_group_order", "합계발주금액(원)"],
-        ascending=[True, False]
-    ).reset_index(drop=True)
-    df = df.drop(columns=["_group_order"])
+    df = df.sort_values("합계발주금액(원)", ascending=False).reset_index(drop=True)
     df.index += 1
-
-    # ★ 검색키워드 컬럼을 앞으로 이동
-    cols = ["검색키워드"] + [c for c in df.columns if c != "검색키워드"]
-    df = df[cols]
-
-    # 금액 천단위 콤마
     df["합계발주금액(원)"] = df["합계발주금액(원)"].apply(lambda x: f"{x:,}")
-
-    # 키워드별 건수 로그
-    for kw in KEYWORDS:
-        cnt = (df["검색키워드"] == kw).sum()
-        logger.info(f"  {kw}: {cnt}건")
-    logger.info(f"최종 합계: {len(df)}건")
 
     return df
 
 
 def save_excel(df: pd.DataFrame, date_str: str) -> str:
+    """Excel 저장 (헤더 스타일 포함)"""
     filename = f"나라장터_기술용역_발주계획_{date_str}.xlsx"
     filepath = f"/tmp/{filename}"
 
@@ -217,7 +198,7 @@ def save_excel(df: pd.DataFrame, date_str: str) -> str:
             )
 
         from openpyxl.styles import PatternFill, Font, Alignment
-        fill = PatternFill("solid", fgColor="1B5E20")
+        fill = PatternFill("solid", fgColor="1B5E20")   # 발주계획은 초록색 헤더
         font = Font(color="FFFFFF", bold=True)
         for cell in ws[1]:
             cell.fill = fill
@@ -240,21 +221,14 @@ def send_telegram_message(text: str):
     )
 
 
-def send_telegram_file(filepath: str, date_str: str, df: pd.DataFrame):
+def send_telegram_file(filepath: str, date_str: str, count: int):
     y, m, d = date_str[:4], date_str[4:6], date_str[6:]
-
-    # ★ 키워드별 건수 요약
-    kw_summary = "\n".join(
-        f"  • {kw}: {(df['검색키워드'] == kw).sum()}건"
-        for kw in KEYWORDS
-    )
-
     msg = (
         f"📌 *나라장터 기술용역 발주계획*\n"
         f"📅 기준일: {y}-{m}-{d}\n"
-        f"📊 총 수집건수: *{len(df)}건*\n"
-        f"\n{kw_summary}\n"
-        f"\n🔽 키워드 그룹 순서 → 금액 내림차순 정렬"
+        f"📊 수집건수: *{count}건*\n"
+        f"🔍 필터: {', '.join(KEYWORDS)}\n"
+        f"🔽 합계발주금액 높은 순 정렬"
     )
     send_telegram_message(msg)
 
@@ -289,6 +263,10 @@ def main():
         return
 
     df = build_dataframe(items)
+    logger.info(f"정렬 후 전체: {len(df)}건")
+
+    df = filter_by_keywords(df)
+    logger.info(f"최종 데이터: {len(df)}건")
 
     if df.empty:
         y, m, d = date_str[:4], date_str[4:6], date_str[6:]
@@ -301,7 +279,7 @@ def main():
         return
 
     filepath = save_excel(df, date_str)
-    send_telegram_file(filepath, date_str, df)
+    send_telegram_file(filepath, date_str, len(df))
     logger.info("▶ 완료")
 
 
