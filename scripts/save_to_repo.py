@@ -60,10 +60,22 @@ INCLUDE_KEYWORDS = [
     "활용방안",
 ]
 
-# ── 레저조경부 제외 키워드 (건설사업관리만) ──────────────────
-# 검토 탭 = 전체 - 확정 - 건설사업관리
-EXCLUDE_KEYWORDS = [
-    "건설사업관리", 
+# ── 완전제외 키워드 (확정·검토 어디에도 안 보임) ─────────────
+HARD_EXCLUDE_KEYWORDS = [
+    "건설사업관리",
+]
+
+# ── 확정→검토 강등 키워드 (INCLUDE에 걸려도 검토로 이동) ──────
+SOFT_EXCLUDE_KEYWORDS = [
+    "재해위험",   # 자연재해위험개선지구 정비사업
+    "급경사지",   # 급경사지 붕괴위험지구 정비
+    "소하천",     # 소하천 정비사업
+    "하수관",     # 하수관로 정비
+    "도로",       # 단순 도로 설계
+    "교량",       # 교량 설계
+    "상수도",     # 상수도 정비
+    "하천정비",   # 하천정비 기본계획
+    "치수",       # 치수사업
 ]
 
 
@@ -77,9 +89,10 @@ def get_name_field(data_type: str) -> str:
 def leisure_filter(items: list[dict], name_field: str) -> list[dict]:
     """
     레저조경부 필터링
-    - 건설사업관리 포함 항목: 확정/검토 어디에도 포함 안 함
-    - confirmed: INCLUDE_KEYWORDS 매칭 항목
-    - review: 건설사업관리 제외 후 INCLUDE 미매칭 항목 전체
+    - HARD_EXCLUDE 포함 항목: 확정/검토 어디에도 포함 안 함
+    - SOFT_EXCLUDE 포함 항목: INCLUDE에 걸려도 검토로 이동
+    - confirmed: INCLUDE 매칭 + SOFT_EXCLUDE 미해당
+    - review: 나머지 전체 (SOFT_EXCLUDE 강등 포함)
     반환: {"confirmed": [...], "review": [...]}
     """
     confirmed = []
@@ -88,8 +101,13 @@ def leisure_filter(items: list[dict], name_field: str) -> list[dict]:
     for item in items:
         name = str(item.get(name_field, ""))
 
-        # 건설사업관리 → 완전 제외
-        if any(ex in name for ex in EXCLUDE_KEYWORDS):
+        # 완전 제외 (확정·검토 둘 다 제외)
+        if any(ex in name for ex in HARD_EXCLUDE_KEYWORDS):
+            continue
+
+        # 확정→검토 강등 (SOFT_EXCLUDE 단어 포함 시 검토로)
+        if any(ex in name for ex in SOFT_EXCLUDE_KEYWORDS):
+            review.append(item)
             continue
 
         matched = [kw for kw in INCLUDE_KEYWORDS if kw in name]
