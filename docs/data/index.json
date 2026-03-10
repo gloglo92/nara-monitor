@@ -84,14 +84,14 @@
     },
     "20260310": {
       "사전규격": {
-        "total": 40,
+        "total": 48,
         "confirmed": 4,
-        "review": 28
+        "review": 36
       },
       "발주계획": {
-        "total": 60,
-        "confirmed": 13,
-        "review": 37
+        "total": 79,
+        "confirmed": 16,
+        "review": 53
       }
     }
   }
