@@ -391,8 +391,21 @@ const INCLUDE_KW = [
   "조성계획","경관계획","공원녹지기본계획","활용방안",
 ];
 
-// ── 제외 키워드: 건설사업관리만 (확정·검토 어디에도 안 보임) ──
-const EXCLUDE_KW = ["건설사업관리"];
+// ── 완전제외 키워드 (확정·검토 어디에도 안 보임) ─────────────
+const HARD_EXCLUDE_KW = ["건설사업관리"];
+
+// ── 확정→검토 강등 키워드 (INCLUDE에 걸려도 검토로 이동) ──────
+const SOFT_EXCLUDE_KW = [
+  "재해위험",   // 자연재해위험개선지구 정비사업
+  "급경사지",   // 급경사지 붕괴위험지구 정비
+  "소하천",     // 소하천 정비사업
+  "하수관",     // 하수관로 정비
+  "도로",       // 단순 도로 설계
+  "교량",       // 교량 설계
+  "상수도",     // 상수도 정비
+  "하천정비",   // 하천정비 기본계획
+  "치수",       // 치수사업
+];
 
 // ── 상태 ─────────────────────────────────────────────────
 let state = {
@@ -602,8 +615,10 @@ function getFilteredItems(rawData, refilterKw) {
   const confirmed = [], review = [];
   (rawData.items || []).forEach(item => {
     const name = String(item[nameField] || "");
-    // 건설사업관리: 확정·검토 어디에도 표시 안 함
-    if (EXCLUDE_KW.some(k => name.includes(k))) return;
+    // 완전 제외 (확정·검토 둘 다 표시 안 함)
+    if (HARD_EXCLUDE_KW.some(k => name.includes(k))) return;
+    // 확정→검토 강등 (SOFT_EXCLUDE 단어 포함 시 검토로)
+    if (SOFT_EXCLUDE_KW.some(k => name.includes(k))) { review.push(item); return; }
     const mk = matchedKw(name, kw);
     if (mk) confirmed.push({ ...item, _matched: mk });
     else    review.push(item);
