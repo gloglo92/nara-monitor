@@ -1,10 +1,10 @@
 {
   "date": "20260311",
   "type": "사전규격",
-  "total": 29,
+  "total": 31,
   "confirmed_count": 3,
-  "review_count": 22,
-  "generated_at": "2026-03-11T05:57:36.141822",
+  "review_count": 24,
+  "generated_at": "2026-03-11T06:19:21.272553",
   "confirmed": [
     {
       "검색키워드": "기본계획",
@@ -70,6 +70,21 @@
       "공고번호": "",
       "참조번호": "수도시설과-3922",
       "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00194639&fileType=BFDTL&fileSeq=1"
+    },
+    {
+      "검색키워드": "기본계획",
+      "사전규격등록번호": "R26BD00194751",
+      "사업명(품명)": "수원시 역세권 활성화사업 기본계획(2차) 수립 용역(총괄 및 1차)",
+      "발주기관": "경기도 수원시",
+      "수요기관": "경기도 수원시",
+      "배정예산액(원)": "400,000,000",
+      "등록일시": "2026-03-11 15:06:56",
+      "의견등록마감일": "2026-03-16 23:59:00",
+      "납품기한": "",
+      "SW사업여부": "N",
+      "공고번호": "",
+      "참조번호": "지구단위계획과-3427",
+      "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00194751&fileType=BFDTL&fileSeq=1"
     },
     {
       "검색키워드": "설계",
@@ -280,6 +295,21 @@
       "공고번호": "",
       "참조번호": "건설과-6736",
       "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00194629&fileType=BFDTL&fileSeq=1"
+    },
+    {
+      "검색키워드": "설계",
+      "사전규격등록번호": "R26BD00194768",
+      "사업명(품명)": "전곡고 외1교(연천고) 기숙사 스프링클러설비 설치 소방공사 설계용역 ",
+      "발주기관": "경기도교육청 경기도연천교육지원청",
+      "수요기관": "경기도교육청 경기도연천교육지원청",
+      "배정예산액(원)": "63,992,000",
+      "등록일시": "2026-03-11 15:16:24",
+      "의견등록마감일": "2026-03-16 23:59:00",
+      "납품기한": "",
+      "SW사업여부": "N",
+      "공고번호": "",
+      "참조번호": "행정과-5700",
+      "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00194768&fileType=BFDTL&fileSeq=1"
     },
     {
       "검색키워드": "설계",
