@@ -84,6 +84,51 @@
     background: var(--green); color: white; border: none;
     padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;
   }
+  .fetch-btn {
+    background: #d97706; color: white; border: none;
+    padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;
+    transition: background 0.2s;
+  }
+  .fetch-btn:hover { background: #b45309; }
+  .fetch-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+  /* ── 수집 모달 ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center; z-index: 500;
+  }
+  .modal-box {
+    background: white; border-radius: 20px; padding: 36px 32px; width: 380px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.3); text-align: center;
+  }
+  .modal-box h2 { font-size: 17px; color: var(--green); margin-bottom: 8px; }
+  .modal-box p  { font-size: 12px; color: var(--gray); margin-bottom: 20px; line-height: 1.6; }
+  .modal-date-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; justify-content: center; }
+  .modal-date-row label { font-size: 12px; font-weight: bold; color: #374151; white-space: nowrap; }
+  .modal-date-input {
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 12px; outline: none; transition: border 0.2s;
+  }
+  .modal-date-input:focus { border-color: var(--green-mid); }
+  .modal-hint { font-size: 11px; color: #9ca3af; margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: center; }
+  .modal-confirm {
+    background: var(--green); color: white; border: none;
+    padding: 10px 24px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: bold;
+  }
+  .modal-confirm:hover { background: var(--green-dark); }
+  .modal-cancel {
+    background: #f1f5f9; color: var(--gray); border: 1px solid var(--border);
+    padding: 10px 24px; border-radius: 10px; cursor: pointer; font-size: 13px;
+  }
+  .modal-status {
+    margin-top: 16px; font-size: 12px; padding: 10px 14px;
+    border-radius: 8px; display: none;
+  }
+  .modal-status.success { background: #dcfce7; color: #166534; }
+  .modal-status.error   { background: #fee2e2; color: #991b1b; }
+  .modal-status.loading { background: #dbeafe; color: #1e40af; }
+
   .today-badge {
     background: #dcfce7; color: #166534; font-size: 11px; font-weight: bold;
     padding: 4px 10px; border-radius: 20px; margin-left: auto;
@@ -231,6 +276,24 @@
   </div>
 </div>
 
+<!-- ── 수집 트리거 모달 ── -->
+<div id="fetch-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <h2>⚡ 나라장터 데이터 수집</h2>
+    <p>GitHub Actions를 실행하여<br>나라장터 API를 즉시 호출하고<br>텔레그램으로 결과를 전송합니다.</p>
+    <div class="modal-date-row">
+      <label>📅 수집 날짜</label>
+      <input type="date" id="fetch-date-input" class="modal-date-input">
+    </div>
+    <div class="modal-hint">비워두면 어제 날짜 기준으로 자동 수집</div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="hideFetchModal()">취소</button>
+      <button class="modal-confirm" id="modal-confirm-btn" onclick="triggerFetch()">🚀 수집 시작</button>
+    </div>
+    <div class="modal-status" id="modal-status"></div>
+  </div>
+</div>
+
 <!-- ── 메인 앱 ── -->
 <div id="app">
   <div class="header">
@@ -255,6 +318,7 @@
         <option value="">로딩 중...</option>
       </select>
       <button class="refresh-btn" onclick="loadIndex()">🔄 새로고침</button>
+      <button class="fetch-btn" id="fetch-btn" onclick="showFetchModal()">⚡ 지금 수집</button>
 
       <div class="date-divider"></div>
 
@@ -340,6 +404,11 @@
 // 설정 — 비밀번호 변경은 여기서
 // ════════════════════════════════════════════════════════
 const PASSWORD_HASH = hashStr("leisure2026!");  // ← 비밀번호 변경 시 이 문자열만 수정
+
+// ── GitHub Actions 트리거 설정 ──────────────────────────────
+const GITHUB_REPO  = "gloglo92/nara-monitor";
+const GITHUB_PAT   = "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";
+const WORKFLOW_FILE = "nara_fetch.yml";
 
 function hashStr(s) {
   // 단순 해시 (클라이언트 전용)
@@ -800,6 +869,82 @@ function resetRefilter() {
   document.getElementById("refilter-input").value = "";
   updateSummary();
   showTab(state.currentTab.type, state.currentTab.sub);
+}
+
+// ════════════════════════════════════════════════════════
+// GitHub Actions 수집 트리거
+// ════════════════════════════════════════════════════════
+function showFetchModal() {
+  // 기본값: 오늘 날짜
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm   = String(today.getMonth() + 1).padStart(2, "0");
+  const dd   = String(today.getDate()).padStart(2, "0");
+  document.getElementById("fetch-date-input").value = `${yyyy}-${mm}-${dd}`;
+
+  document.getElementById("modal-status").style.display = "none";
+  document.getElementById("modal-confirm-btn").disabled = false;
+  document.getElementById("modal-confirm-btn").textContent = "🚀 수집 시작";
+  document.getElementById("fetch-modal").style.display = "flex";
+}
+function hideFetchModal() {
+  document.getElementById("fetch-modal").style.display = "none";
+}
+
+async function triggerFetch() {
+  const dateVal = document.getElementById("fetch-date-input").value;
+  // YYYY-MM-DD → YYYYMMDD 변환 (빈 값이면 빈 문자열로 → Actions에서 전일 처리)
+  const targetDate = dateVal ? dateVal.replace(/-/g, "") : "";
+
+  const statusEl  = document.getElementById("modal-status");
+  const confirmBtn = document.getElementById("modal-confirm-btn");
+
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = "⏳ 실행 중...";
+  statusEl.className = "modal-status loading";
+  statusEl.style.display = "block";
+  statusEl.textContent = "GitHub Actions에 요청 전송 중...";
+
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `token ${GITHUB_PAT}`,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ref: "main",
+          inputs: { target_date: targetDate }
+        }),
+      }
+    );
+
+    if (res.status === 204) {
+      statusEl.className = "modal-status success";
+      statusEl.innerHTML = `✅ 수집 시작! 약 2~3분 후 텔레그램에 결과가 전송됩니다.<br>
+        <small style="color:#166534">완료 후 🔄 새로고침 버튼을 눌러주세요.</small>`;
+      confirmBtn.textContent = "✅ 완료";
+      // 3초 후 버튼 재활성화
+      setTimeout(() => {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "🚀 수집 시작";
+      }, 5000);
+    } else {
+      const errText = await res.text();
+      statusEl.className = "modal-status error";
+      statusEl.textContent = `❌ 오류 (${res.status}): ${errText.slice(0, 120)}`;
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "🚀 수집 시작";
+    }
+  } catch (e) {
+    statusEl.className = "modal-status error";
+    statusEl.textContent = `❌ 네트워크 오류: ${e.message}`;
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = "🚀 수집 시작";
+  }
 }
 
 // ════════════════════════════════════════════════════════
