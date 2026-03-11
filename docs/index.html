@@ -504,7 +504,6 @@ function doLogin() {
   if (hashStr(pw) === PASSWORD_HASH) {
     // PAT 입력값을 메모리 변수에만 저장 (세션/로컬스토리지 저장 안 함)
     const patVal = (document.getElementById("pat-input")?.value || "").trim();
-    if (patVal) GITHUB_PAT = patVal;
     sessionStorage.setItem("auth", "1");
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("app").style.display = "block";
