@@ -269,9 +269,18 @@
     <div class="logo">🌿</div>
     <h1>(주)건화 레저조경부 나라장터 모니터</h1>
     <p>부서 전용 시스템 · 비밀번호를 입력하세요</p>
-    <input type="password" id="pw-input" placeholder="••••••" maxlength="20"
+    <input type="password" id="pw-input" placeholder="비밀번호" maxlength="20"
       onkeydown="if(event.key==='Enter')doLogin()">
-    <button onclick="doLogin()">접속</button>
+    <div style="margin-top:12px; text-align:left">
+      <div style="font-size:11px; color:#6b7280; margin-bottom:4px;">
+        GitHub PAT <span style="color:#9ca3af">(선택 · ⚡ 지금 수집 기능 사용 시 입력)</span>
+      </div>
+      <input type="password" id="pat-input" placeholder="ghp_xxxxxxxxxxxx"
+        style="width:100%; padding:10px 14px; border:1.5px solid #e5e7eb; border-radius:10px;
+               font-size:12px; letter-spacing:1px; outline:none; font-family:monospace;"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button onclick="doLogin()" style="margin-top:16px">접속</button>
     <div class="login-error" id="login-error">비밀번호가 올바르지 않습니다</div>
   </div>
 </div>
@@ -406,9 +415,9 @@
 const PASSWORD_HASH = hashStr("leisure2026!");  // ← 비밀번호 변경 시 이 문자열만 수정
 
 // ── GitHub Actions 트리거 설정 ──────────────────────────────
-const GITHUB_REPO  = "gloglo92/nara-monitor";
-const GITHUB_PAT   = "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";
+const GITHUB_REPO   = "gloglo92/nara-monitor";
 const WORKFLOW_FILE = "nara_fetch.yml";
+const GITHUB_PAT    = "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";
 
 function hashStr(s) {
   // 단순 해시 (클라이언트 전용)
@@ -493,6 +502,9 @@ let state = {
 function doLogin() {
   const pw = document.getElementById("pw-input").value;
   if (hashStr(pw) === PASSWORD_HASH) {
+    // PAT 입력값을 메모리 변수에만 저장 (세션/로컬스토리지 저장 안 함)
+    const patVal = (document.getElementById("pat-input")?.value || "").trim();
+    if (patVal) GITHUB_PAT = patVal;
     sessionStorage.setItem("auth", "1");
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("app").style.display = "block";
@@ -892,6 +904,14 @@ function hideFetchModal() {
 }
 
 async function triggerFetch() {
+  if (!GITHUB_PAT) {
+    const statusEl = document.getElementById("modal-status");
+    statusEl.className = "modal-status error";
+    statusEl.style.display = "block";
+    statusEl.innerHTML = `⚠️ GitHub PAT가 입력되지 않았습니다.<br>
+      <small>로그아웃 후 로그인 화면에서 PAT를 입력해주세요.</small>`;
+    return;
+  }
   const dateVal = document.getElementById("fetch-date-input").value;
   // YYYY-MM-DD → YYYYMMDD 변환 (빈 값이면 빈 문자열로 → Actions에서 전일 처리)
   const targetDate = dateVal ? dateVal.replace(/-/g, "") : "";
