@@ -97,14 +97,14 @@
     },
     "20260311": {
       "사전규격": {
-        "total": 47,
-        "confirmed": 6,
-        "review": 34
+        "total": 63,
+        "confirmed": 9,
+        "review": 44
       },
       "발주계획": {
-        "total": 90,
-        "confirmed": 13,
-        "review": 73
+        "total": 120,
+        "confirmed": 17,
+        "review": 95
       }
     }
   }
