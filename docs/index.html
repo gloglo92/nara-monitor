@@ -919,7 +919,7 @@ async function triggerFetch() {
       {
         method: "POST",
         headers: {
-          "Authorization": `token ${GITHUB_PAT}`,
+         "Authorization": `Bearer ${GITHUB_PAT}`,
           "Accept": "application/vnd.github.v3+json",
           "Content-Type": "application/json",
         },
