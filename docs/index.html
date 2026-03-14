@@ -915,12 +915,13 @@ async function triggerFetch() {
     if (data.ok) {
       statusEl.className = "modal-status success";
       statusEl.innerHTML = `✅ 수집 시작! 약 2~3분 후 텔레그램에 결과가 전송됩니다.<br>
-        <small style="color:#166534">완료 후 🔄 새로고침 버튼을 눌러주세요.</small>`;
+        <small style="color:#166534">3초 후 자동으로 창이 닫힙니다.</small>`;
       confirmBtn.textContent = "✅ 완료";
       setTimeout(() => {
+        hideFetchModal();
         confirmBtn.disabled = false;
         confirmBtn.textContent = "🚀 수집 시작";
-      }, 5000);
+      }, 3000);
     } else {
       statusEl.className = "modal-status error";
       statusEl.textContent = `❌ 오류: ${String(data.error || "").slice(0, 120)}`;
