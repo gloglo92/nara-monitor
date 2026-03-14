@@ -136,14 +136,14 @@
     },
     "20260314": {
       "사전규격": {
-        "total": 3,
-        "confirmed": 2,
+        "total": 5,
+        "confirmed": 4,
         "review": 0
       },
       "발주계획": {
-        "total": 3,
-        "confirmed": 3,
-        "review": 0
+        "total": 5,
+        "confirmed": 4,
+        "review": 1
       }
     }
   }
