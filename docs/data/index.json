@@ -162,14 +162,14 @@
     },
     "20260316": {
       "발주계획": {
-        "total": 19,
-        "confirmed": 2,
-        "review": 17
+        "total": 29,
+        "confirmed": 4,
+        "review": 24
       },
       "사전규격": {
-        "total": 11,
+        "total": 14,
         "confirmed": 3,
-        "review": 8
+        "review": 11
       }
     }
   }
