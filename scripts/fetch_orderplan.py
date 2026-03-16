@@ -308,25 +308,31 @@ def main():
     items = fetch_all_pages(start_dt, end_dt)
     logger.info(f"전체 수집: {len(items)}건")
 
+    y, m, d = date_str[:4], date_str[4:6], date_str[6:]
+
     if not items:
-        y, m, d = date_str[:4], date_str[4:6], date_str[6:]
         send_telegram_message(
             f"📌 *나라장터 기술용역 발주계획*\n"
             f"📅 기준일: {y}-{m}-{d}\n"
             f"ℹ️ 해당일 등록 데이터가 없습니다."
         )
+        # ★ 데이터 없어도 빈 JSON 저장 → 날짜 선택 및 수집시간 표시 가능
+        save_json_data(pd.DataFrame(), date_str, "발주계획")
+        logger.info("▶ 완료 (데이터 없음 - 빈 JSON 저장)")
         return
 
-    df = build_dataframe(items)  # 필터링 + 그룹정렬 모두 포함
+    df = build_dataframe(items)
 
     if df.empty:
-        y, m, d = date_str[:4], date_str[4:6], date_str[6:]
         send_telegram_message(
             f"📌 *나라장터 기술용역 발주계획*\n"
             f"📅 기준일: {y}-{m}-{d}\n"
             f"ℹ️ 키워드 해당 데이터가 없습니다.\n"
             f"🔍 검색어: {', '.join(KEYWORDS)}"
         )
+        # ★ 키워드 미매칭이어도 빈 JSON 저장
+        save_json_data(pd.DataFrame(), date_str, "발주계획")
+        logger.info("▶ 완료 (키워드 미매칭 - 빈 JSON 저장)")
         return
 
     filepath = save_excel(df, date_str)
