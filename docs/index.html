@@ -565,6 +565,13 @@ async function loadIndex() {
     if (latest) loadDate(latest);
     document.getElementById("last-update").textContent =
       `최신: ${latest ? latest.slice(0,4)+"-"+latest.slice(4,6)+"-"+latest.slice(6) : "-"}`;
+
+    // ★ 마지막 수집 실행 시각 표시
+    const collectTimeEl = document.getElementById("collect-time");
+    if (collectTimeEl) {
+      const lastCollected = idx.last_collected_at || "";
+      collectTimeEl.textContent = lastCollected ? `🕐 마지막 수집: ${lastCollected}` : "";
+    }
   } catch(e) {
     document.getElementById("table-area").innerHTML =
       `<div class="loading">⚠️ index.json을 불러올 수 없습니다.<br><small>${e.message}</small></div>`;
@@ -668,21 +675,6 @@ async function loadDate(dateStr) {
     ? await specRes.value.json() : null;
   state.planData = planRes.status === "fulfilled" && planRes.value.ok
     ? await planRes.value.json() : null;
-
-  // ── 수집 시간 표시 ──────────────────────────────────────
-  const genAt = state.specData?.generated_at || state.planData?.generated_at;
-  const collectTimeEl = document.getElementById("collect-time");
-  if (genAt && collectTimeEl) {
-    // generated_at 은 KST ISO 문자열 (예: 2026-03-17T06:15:08)
-    const dt = new Date(genAt);
-    // UTC+9 보정
-    const kst = new Date(dt.getTime() + (dt.getTimezoneOffset() * 60000) + (9 * 3600000));
-    const fmt = `${kst.getFullYear()}-${String(kst.getMonth()+1).padStart(2,"0")}-${String(kst.getDate()).padStart(2,"0")} `
-              + `${String(kst.getHours()).padStart(2,"0")}:${String(kst.getMinutes()).padStart(2,"0")} KST`;
-    collectTimeEl.textContent = `📊 수집: ${fmt}`;
-  } else if (collectTimeEl) {
-    collectTimeEl.textContent = "";
-  }
 
   updateSummary();
   showTab(state.currentTab.type, state.currentTab.sub);
