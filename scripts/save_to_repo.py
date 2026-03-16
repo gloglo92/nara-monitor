@@ -197,6 +197,11 @@ def save_json_data(df: pd.DataFrame, date_str: str, data_type: str) -> None:
     index["dates"]  = sorted(dates, reverse=True)
     index["latest"] = index["dates"][0]
 
+    # ★ 마지막 수집 실행 시각 갱신 (KST)
+    from datetime import timezone, timedelta
+    KST = timezone(timedelta(hours=9))
+    index["last_collected_at"] = datetime.now(KST).strftime("%Y-%m-%d %H:%M KST")
+
     # 해당 날짜 요약 정보 갱신
     summary = index.get("summary", {})
     if date_str not in summary:
