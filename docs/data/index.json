@@ -26,7 +26,7 @@
     "발주계획"
   ],
   "latest": "20260323",
-  "last_collected_at": "2026-03-23 08:04 KST",
+  "last_collected_at": "2026-03-23 17:09 KST",
   "summary": {
     "20260306": {
       "사전규격": {
@@ -254,14 +254,14 @@
     },
     "20260323": {
       "사전규격": {
-        "total": 0,
-        "confirmed": 0,
-        "review": 0
+        "total": 32,
+        "confirmed": 3,
+        "review": 23
       },
       "발주계획": {
-        "total": 0,
-        "confirmed": 0,
-        "review": 0
+        "total": 56,
+        "confirmed": 15,
+        "review": 34
       }
     }
   }
