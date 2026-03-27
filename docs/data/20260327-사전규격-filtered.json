@@ -1,10 +1,10 @@
 {
   "date": "20260327",
   "type": "사전규격",
-  "total": 27,
-  "confirmed_count": 4,
-  "review_count": 20,
-  "generated_at": "2026-03-27T05:29:00.054465",
+  "total": 32,
+  "confirmed_count": 5,
+  "review_count": 23,
+  "generated_at": "2026-03-27T07:58:34.173842",
   "confirmed": [
     {
       "검색키워드": "타당성",
@@ -35,7 +35,7 @@
       "SW사업여부": "N",
       "공고번호": "",
       "참조번호": "관광진흥과-6340",
-      "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00204115&fileType=BFDTL&fileSeq=1",
+      "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00204115&fileType=BFDTL&fileSeq=2",
       "_matched": "공원, 역사공원, 문화, 복합문화, 복합"
     },
     {
@@ -53,6 +53,22 @@
       "참조번호": "회계과-10978",
       "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00204186&fileType=BFDTL&fileSeq=1",
       "_matched": "체육"
+    },
+    {
+      "검색키워드": "설계",
+      "사전규격등록번호": "R26BD00204338",
+      "사업명(품명)": "전주부성 성곽(북서편) 복원․정비 설계용역",
+      "발주기관": "전북특별자치도 전주시",
+      "수요기관": "전북특별자치도 전주시",
+      "배정예산액(원)": "272,150,000",
+      "등록일시": "2026-03-27 15:57:41",
+      "의견등록마감일": "2026-04-01 23:59:00",
+      "납품기한": "",
+      "SW사업여부": "N",
+      "공고번호": "",
+      "참조번호": "전주시 국가유산관리과",
+      "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00204338&fileType=BFDTL&fileSeq=1",
+      "_matched": "복원"
     },
     {
       "검색키워드": "설계",
@@ -118,6 +134,21 @@
       "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00203987&fileType=BFDTL&fileSeq=1"
     },
     {
+      "검색키워드": "기본계획",
+      "사전규격등록번호": "R26BD00204310",
+      "사업명(품명)": "제5차 인천광역시 교통안전기본계획 및 교통약자 이동편의 증진계획 수립 용역",
+      "발주기관": "인천광역시",
+      "수요기관": "인천광역시",
+      "배정예산액(원)": "249,039,000",
+      "등록일시": "2026-03-27 15:39:54",
+      "의견등록마감일": "2026-04-01 23:59:00",
+      "납품기한": "",
+      "SW사업여부": "N",
+      "공고번호": "",
+      "참조번호": "회계담당관-7247",
+      "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00204310&fileType=BFDTL&fileSeq=1"
+    },
+    {
       "검색키워드": "설계",
       "사전규격등록번호": "R26BD00204191",
       "사업명(품명)": "차세대발사체 메탄 연소장치 개발을 위한 연소기 연소시험설비 수정 상세설계 및 개조",
@@ -158,7 +189,7 @@
       "의견등록마감일": "2026-04-01 23:59:00",
       "납품기한": "",
       "SW사업여부": "N",
-      "공고번호": "",
+      "공고번호": "R26BK01426720",
       "참조번호": "하수도부-10822",
       "규격서URL": ""
     },
@@ -251,6 +282,21 @@
       "공고번호": "",
       "참조번호": "시설과-1346",
       "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00203978&fileType=BFDTL&fileSeq=1"
+    },
+    {
+      "검색키워드": "설계",
+      "사전규격등록번호": "R26BD00204292",
+      "사업명(품명)": "00지역 장비동 신축 및 경비실 재건축 설계용역",
+      "발주기관": "국방과학연구소",
+      "수요기관": "국방과학연구소",
+      "배정예산액(원)": "204,897,000",
+      "등록일시": "2026-03-27 15:24:39",
+      "의견등록마감일": "2026-04-01 23:59:00",
+      "납품기한": "2026-11-16 00:00:00",
+      "SW사업여부": "N",
+      "공고번호": "",
+      "참조번호": "TE260188UD",
+      "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00204292&fileType=BFDTL&fileSeq=1"
     },
     {
       "검색키워드": "설계",
@@ -371,6 +417,21 @@
       "공고번호": "",
       "참조번호": "R20261108",
       "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00204171&fileType=BFDTL&fileSeq=1"
+    },
+    {
+      "검색키워드": "설계",
+      "사전규격등록번호": "R26BD00204253",
+      "사업명(품명)": "광통신 터미널을 위한 광기계부 설계 및 제작",
+      "발주기관": "한국천문연구원",
+      "수요기관": "한국천문연구원",
+      "배정예산액(원)": "49,500,000",
+      "등록일시": "2026-03-27 14:43:39",
+      "의견등록마감일": "2026-04-01 23:59:00",
+      "납품기한": "2026-11-30 00:00:00",
+      "SW사업여부": "N",
+      "공고번호": "",
+      "참조번호": "우주항법 710-10464",
+      "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00204253&fileType=BFDTL&fileSeq=1"
     }
   ]
 }
