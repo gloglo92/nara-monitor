@@ -695,6 +695,7 @@ function matchedKw(name, kwList) {
 function getFilteredItems(rawData, refilterKw) {
   if (!rawData) return { confirmed: [], review: [] };
   const nameField = getNameField(rawData.type);
+  const budgetKey = rawData.type === "사전규격" ? "배정예산액(원)" : "합계발주금액(원)";
   const kw = refilterKw || INCLUDE_KW;
 
   const confirmed = [], review = [];
@@ -703,10 +704,19 @@ function getFilteredItems(rawData, refilterKw) {
     // 완전 제외 (확정·검토 둘 다 표시 안 함)
     if (HARD_EXCLUDE_KW.some(k => name.includes(k))) return;
     // 확정→검토 강등 (SOFT_EXCLUDE 단어 포함 시 검토로)
-    if (SOFT_EXCLUDE_KW.some(k => name.includes(k))) { review.push(item); return; }
+    const softHit = SOFT_EXCLUDE_KW.find(k => name.includes(k));
+    if (softHit) { review.push({ ...item, _reason: `강등: ${softHit}` }); return; }
     const mk = matchedKw(name, kw);
-    if (mk) confirmed.push({ ...item, _matched: mk });
-    else    review.push(item);
+    if (mk) {
+      // 설계 1억미만 강등
+      if (item["검색키워드"] === "설계") {
+        const amt = Number(String(item[budgetKey] || "0").replace(/,/g, "")) || 0;
+        if (amt < 100000000) { review.push({ ...item, _matched: mk, _reason: "설계(1억미만)" }); return; }
+      }
+      confirmed.push({ ...item, _matched: mk });
+    } else {
+      review.push(item);
+    }
   });
   return { confirmed, review };
 }
@@ -714,37 +724,31 @@ function getFilteredItems(rawData, refilterKw) {
 // ════════════════════════════════════════════════════════
 // 정렬 유틸
 // ════════════════════════════════════════════════════════
-const STAGE_ORDER = ["타당성", "기본구상", "기본계획", "설계"];
-
-function getStageGroup(name) {
-  for (const kw of STAGE_ORDER) {
-    if (name.includes(kw)) return kw;
-  }
-  return "기타";
+function getStageIdx(name) {
+  if (name.includes("타당성") || name.includes("기본구상")) return 0;
+  if (name.includes("기본계획")) return 1;
+  if (name.includes("설계")) return 2;
+  return 99;
 }
 
 function getAmtNum(item, budgetKey) {
   return Number(String(item[budgetKey] || "0").replace(/,/g, "")) || 0;
 }
 
-// 확정: 금액 내림차순
-function sortConfirmed(items, budgetKey) {
-  return [...items].sort((a, b) => getAmtNum(b, budgetKey) - getAmtNum(a, budgetKey));
-}
-
-// 검토: 타당성→기본구상→기본계획→설계→기타 그룹 후 금액 내림차순
-function sortReview(items, budgetKey) {
+// 확정/검토 공통: 타당성·기본구상 → 기본계획 → 설계 → 기타, 각 그룹 내 금액 내림차순
+function sortByStage(items, budgetKey) {
   return [...items].sort((a, b) => {
     const nameA = a["사업명(품명)"] || a["사업명"] || "";
     const nameB = b["사업명(품명)"] || b["사업명"] || "";
-    const gi = STAGE_ORDER.indexOf(getStageGroup(nameA));
-    const gj = STAGE_ORDER.indexOf(getStageGroup(nameB));
-    const oi = gi === -1 ? 99 : gi;
-    const oj = gj === -1 ? 99 : gj;
+    const oi = getStageIdx(nameA);
+    const oj = getStageIdx(nameB);
     if (oi !== oj) return oi - oj;
     return getAmtNum(b, budgetKey) - getAmtNum(a, budgetKey);
   });
 }
+
+function sortConfirmed(items, budgetKey) { return sortByStage(items, budgetKey); }
+function sortReview(items, budgetKey)    { return sortByStage(items, budgetKey); }
 
 // ════════════════════════════════════════════════════════
 // UI 업데이트
@@ -794,7 +798,7 @@ function showTab(type, sub) {
     const dl     = row[deadlineKey] || "";
     const url    = row["규격서URL"] || "";
     const org    = row["발주기관"] || row["수요기관"] || "";
-    const extra  = isConfirmedTab ? (row._matched || "") : "";
+    const extra  = isConfirmedTab ? (row._matched || "") : (row._reason || "");
 
     let trClass = "";
     if (dl && isSpec) {   // 사전규격만 마감일 기준 색상 적용 (발주계획 게시일은 과거날짜라 제외)
@@ -843,7 +847,7 @@ function showTab(type, sub) {
             <tr>
               <th>No.</th><th>사업명</th><th>발주기관</th><th>예산(원)</th>
               <th>${dlLabel}</th>
-              <th>${isConfirmedTab ? "매칭 키워드" : "비고(미분류)"}</th>
+              <th>${isConfirmedTab ? "매칭 키워드" : "강등사유"}</th>
               <th>규격서</th>
             </tr>
           </thead>
@@ -1003,7 +1007,7 @@ function downloadExcel() {
         "발주기관": r["발주기관"] || r["수요기관"] || "",
         "예산(원)": r[amtField] || "",
         "마감/게시일": (r[dateField] || "").slice(0, 10),
-        [kwTag]: kwTag === "매칭키워드" ? (r._matched || "") : "",
+        [kwTag]: kwTag === "매칭키워드" ? (r._matched || "") : (r._reason || ""),
       }));
 
     // 확정: 금액 내림차순 / 검토: 그룹(타당성→기본구상→기본계획→설계→기타) + 금액순
@@ -1011,7 +1015,7 @@ function downloadExcel() {
     applyStyle(ws1, headerColor, colWidths);
     XLSX.utils.book_append_sheet(wb, ws1, `${label}-확정`);
 
-    const ws2 = XLSX.utils.json_to_sheet(toRows(sortReview(f.review, amtField), "비고(미분류)"));
+    const ws2 = XLSX.utils.json_to_sheet(toRows(sortReview(f.review, amtField), "강등사유"));
     applyStyle(ws2, headerColor, colWidths);
     XLSX.utils.book_append_sheet(wb, ws2, `${label}-검토`);
   };

@@ -125,8 +125,9 @@ def leisure_filter(items: list[dict], name_field: str) -> list[dict]:
             continue
 
         # 확정→검토 강등 (SOFT_EXCLUDE 단어 포함 시 검토로)
-        if any(ex in name for ex in SOFT_EXCLUDE_KEYWORDS):
-            review.append(item)
+        soft_hit = next((ex for ex in SOFT_EXCLUDE_KEYWORDS if ex in name), None)
+        if soft_hit:
+            review.append({**item, "_reason": f"강등: {soft_hit}"})
             continue
 
         matched = [kw for kw in INCLUDE_KEYWORDS if kw in name]
@@ -191,7 +192,7 @@ def save_json_data(df: pd.DataFrame, date_str: str, data_type: str) -> None:
     for item in filtered["confirmed"]:
         if (item.get("검색키워드") == "설계"
                 and parse_budget(item.get(budget_field, "0")) < DESIGN_BUDGET_THRESHOLD):
-            demoted.append(item)
+            demoted.append({**item, "_reason": "설계(1억미만)"})
         else:
             confirmed_items.append(item)
     review_items = demoted + filtered["review"]
