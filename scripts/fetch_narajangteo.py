@@ -55,8 +55,31 @@ COLUMN_MAP = {
     "swBizObjYn":      "SW사업여부",
     "bidNtceNoList":   "공고번호",
     "refNo":           "참조번호",
-    "specDocFileUrl1": "규격서URL",
+    "specDocFileNm1":  "첨부파일명1",
+    "specDocFileUrl1": "첨부파일URL1",
+    "specDocFileNm2":  "첨부파일명2",
+    "specDocFileUrl2": "첨부파일URL2",
+    "specDocFileNm3":  "첨부파일명3",
+    "specDocFileUrl3": "첨부파일URL3",
 }
+
+
+def pick_best_url(row: dict) -> str:
+    """평가기준 파일 우선, 없으면 과업지시서, 없으면 첫 번째 파일 반환"""
+    files = [
+        (str(row.get("첨부파일명1", "")), str(row.get("첨부파일URL1", ""))),
+        (str(row.get("첨부파일명2", "")), str(row.get("첨부파일URL2", ""))),
+        (str(row.get("첨부파일명3", "")), str(row.get("첨부파일URL3", ""))),
+    ]
+    for priority in ["평가기준", "과업지시서"]:
+        for nm, url in files:
+            if priority in nm and url and url != "nan":
+                return url
+    # 우선순위 파일 없으면 첫 번째 유효 URL
+    for _, url in files:
+        if url and url != "nan":
+            return url
+    return ""
 
 
 def get_target_date_range() -> tuple[str, str, str]:
@@ -166,6 +189,10 @@ def build_dataframe(items: list[dict]) -> pd.DataFrame:
             df[col] = ""
 
     df = df[list(COLUMN_MAP.keys())].rename(columns=COLUMN_MAP)
+
+    # ★ 최적 첨부파일 URL 선택 (평가기준 > 과업지시서 > 첫 번째)
+    df["규격서URL"] = df.apply(pick_best_url, axis=1)
+    df = df.drop(columns=["첨부파일명1","첨부파일URL1","첨부파일명2","첨부파일URL2","첨부파일명3","첨부파일URL3"])
 
     # 금액 숫자 변환
     df["배정예산액(원)"] = (
