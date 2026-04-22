@@ -1,0 +1,645 @@
+{
+  "dates": [
+    "20260421",
+    "20260420",
+    "20260419",
+    "20260418",
+    "20260417",
+    "20260416",
+    "20260415",
+    "20260414",
+    "20260413",
+    "20260412",
+    "20260411",
+    "20260410",
+    "20260409",
+    "20260408",
+    "20260407",
+    "20260406",
+    "20260405",
+    "20260404",
+    "20260403",
+    "20260402",
+    "20260401",
+    "20260331",
+    "20260330",
+    "20260329",
+    "20260328",
+    "20260327",
+    "20260326",
+    "20260325",
+    "20260324",
+    "20260323",
+    "20260322",
+    "20260321",
+    "20260320",
+    "20260319",
+    "20260318",
+    "20260317",
+    "20260316",
+    "20260315",
+    "20260314",
+    "20260313",
+    "20260312",
+    "20260311",
+    "20260310",
+    "20260309",
+    "20260308",
+    "20260306",
+    "20260305",
+    "20260304",
+    "20260303"
+  ],
+  "types": [
+    "사전규격",
+    "발주계획"
+  ],
+  "latest": "20260421",
+  "last_collected_at": "2026-04-22 20:06 KST",
+  "summary": {
+    "20260306": {
+      "사전규격": {
+        "total": 43,
+        "filtered": 7
+      },
+      "발주계획": {
+        "total": 62,
+        "filtered": 10
+      }
+    },
+    "20260305": {
+      "사전규격": {
+        "total": 63,
+        "filtered": 3
+      },
+      "발주계획": {
+        "total": 73,
+        "filtered": 5
+      }
+    },
+    "20260309": {
+      "사전규격": {
+        "total": 67,
+        "confirmed": 15,
+        "review": 45
+      },
+      "발주계획": {
+        "total": 84,
+        "confirmed": 17,
+        "review": 61
+      }
+    },
+    "20260304": {
+      "사전규격": {
+        "total": 45,
+        "confirmed": 10,
+        "review": 31
+      },
+      "발주계획": {
+        "total": 88,
+        "confirmed": 16,
+        "review": 65
+      }
+    },
+    "20260303": {
+      "사전규격": {
+        "total": 38,
+        "confirmed": 6,
+        "review": 19
+      },
+      "발주계획": {
+        "total": 84,
+        "confirmed": 16,
+        "review": 55
+      }
+    },
+    "20260308": {
+      "사전규격": {
+        "total": 1,
+        "confirmed": 1,
+        "review": 0
+      },
+      "발주계획": {
+        "total": 2,
+        "confirmed": 1,
+        "review": 1
+      }
+    },
+    "20260310": {
+      "사전규격": {
+        "total": 55,
+        "confirmed": 5,
+        "review": 42
+      },
+      "발주계획": {
+        "total": 88,
+        "confirmed": 19,
+        "review": 59
+      }
+    },
+    "20260311": {
+      "사전규격": {
+        "total": 63,
+        "confirmed": 9,
+        "review": 44
+      },
+      "발주계획": {
+        "total": 120,
+        "confirmed": 17,
+        "review": 95
+      }
+    },
+    "20260312": {
+      "사전규격": {
+        "total": 57,
+        "confirmed": 10,
+        "review": 36
+      },
+      "발주계획": {
+        "total": 83,
+        "confirmed": 15,
+        "review": 57
+      }
+    },
+    "20260313": {
+      "사전규격": {
+        "total": 52,
+        "confirmed": 10,
+        "review": 35
+      },
+      "발주계획": {
+        "total": 83,
+        "confirmed": 11,
+        "review": 66
+      }
+    },
+    "20260314": {
+      "사전규격": {
+        "total": 5,
+        "confirmed": 4,
+        "review": 0
+      },
+      "발주계획": {
+        "total": 5,
+        "confirmed": 4,
+        "review": 1
+      }
+    },
+    "20260315": {
+      "사전규격": {
+        "total": 1,
+        "confirmed": 0,
+        "review": 1
+      },
+      "발주계획": {
+        "total": 2,
+        "confirmed": 0,
+        "review": 2
+      }
+    },
+    "20260316": {
+      "발주계획": {
+        "total": 83,
+        "confirmed": 22,
+        "review": 53
+      },
+      "사전규격": {
+        "total": 56,
+        "confirmed": 13,
+        "review": 34
+      }
+    },
+    "20260317": {
+      "사전규격": {
+        "total": 50,
+        "confirmed": 3,
+        "review": 42
+      },
+      "발주계획": {
+        "total": 80,
+        "confirmed": 11,
+        "review": 58
+      }
+    },
+    "20260318": {
+      "사전규격": {
+        "total": 38,
+        "confirmed": 11,
+        "review": 18
+      },
+      "발주계획": {
+        "total": 68,
+        "confirmed": 11,
+        "review": 43
+      }
+    },
+    "20260319": {
+      "사전규격": {
+        "total": 58,
+        "confirmed": 9,
+        "review": 39
+      },
+      "발주계획": {
+        "total": 97,
+        "confirmed": 21,
+        "review": 66
+      }
+    },
+    "20260320": {
+      "사전규격": {
+        "total": 42,
+        "confirmed": 7,
+        "review": 29
+      },
+      "발주계획": {
+        "total": 74,
+        "confirmed": 18,
+        "review": 48
+      }
+    },
+    "20260321": {
+      "사전규격": {
+        "total": 0,
+        "confirmed": 0,
+        "review": 0
+      },
+      "발주계획": {
+        "total": 5,
+        "confirmed": 2,
+        "review": 3
+      }
+    },
+    "20260322": {
+      "사전규격": {
+        "total": 3,
+        "confirmed": 1,
+        "review": 2
+      },
+      "발주계획": {
+        "total": 5,
+        "confirmed": 1,
+        "review": 4
+      }
+    },
+    "20260323": {
+      "사전규격": {
+        "total": 54,
+        "confirmed": 8,
+        "review": 37
+      },
+      "발주계획": {
+        "total": 71,
+        "confirmed": 17,
+        "review": 47
+      }
+    },
+    "20260324": {
+      "사전규격": {
+        "total": 39,
+        "confirmed": 11,
+        "review": 22
+      },
+      "발주계획": {
+        "total": 84,
+        "confirmed": 19,
+        "review": 55
+      }
+    },
+    "20260325": {
+      "사전규격": {
+        "total": 54,
+        "confirmed": 18,
+        "review": 31
+      },
+      "발주계획": {
+        "total": 90,
+        "confirmed": 25,
+        "review": 61
+      }
+    },
+    "20260326": {
+      "사전규격": {
+        "total": 55,
+        "confirmed": 14,
+        "review": 32
+      },
+      "발주계획": {
+        "total": 79,
+        "confirmed": 17,
+        "review": 55
+      }
+    },
+    "20260327": {
+      "사전규격": {
+        "total": 0,
+        "confirmed": 0,
+        "review": 0
+      },
+      "발주계획": {
+        "total": 0,
+        "confirmed": 0,
+        "review": 0
+      }
+    },
+    "20260328": {
+      "사전규격": {
+        "total": 1,
+        "confirmed": 1,
+        "review": 0
+      },
+      "발주계획": {
+        "total": 1,
+        "confirmed": 1,
+        "review": 0
+      }
+    },
+    "20260329": {
+      "사전규격": {
+        "total": 0,
+        "confirmed": 0,
+        "review": 0
+      },
+      "발주계획": {
+        "total": 1,
+        "confirmed": 0,
+        "review": 1
+      }
+    },
+    "20260330": {
+      "사전규격": {
+        "total": 39,
+        "confirmed": 6,
+        "review": 27
+      },
+      "발주계획": {
+        "total": 55,
+        "confirmed": 12,
+        "review": 39
+      }
+    },
+    "20260331": {
+      "사전규격": {
+        "total": 35,
+        "confirmed": 15,
+        "review": 16
+      },
+      "발주계획": {
+        "total": 69,
+        "confirmed": 21,
+        "review": 38
+      }
+    },
+    "20260401": {
+      "사전규격": {
+        "total": 42,
+        "confirmed": 8,
+        "review": 27
+      },
+      "발주계획": {
+        "total": 67,
+        "confirmed": 13,
+        "review": 49
+      }
+    },
+    "20260402": {
+      "사전규격": {
+        "total": 0,
+        "confirmed": 0,
+        "review": 0
+      },
+      "발주계획": {
+        "total": 0,
+        "confirmed": 0,
+        "review": 0
+      }
+    },
+    "20260403": {
+      "사전규격": {
+        "total": 41,
+        "confirmed": 6,
+        "review": 27
+      },
+      "발주계획": {
+        "total": 62,
+        "confirmed": 18,
+        "review": 36
+      }
+    },
+    "20260404": {
+      "사전규격": {
+        "total": 1,
+        "confirmed": 1,
+        "review": 0
+      },
+      "발주계획": {
+        "total": 2,
+        "confirmed": 1,
+        "review": 1
+      }
+    },
+    "20260405": {
+      "사전규격": {
+        "total": 4,
+        "confirmed": 0,
+        "review": 2
+      },
+      "발주계획": {
+        "total": 6,
+        "confirmed": 0,
+        "review": 3
+      }
+    },
+    "20260406": {
+      "사전규격": {
+        "total": 48,
+        "confirmed": 13,
+        "review": 28
+      },
+      "발주계획": {
+        "total": 75,
+        "confirmed": 15,
+        "review": 47
+      }
+    },
+    "20260407": {
+      "사전규격": {
+        "total": 33,
+        "confirmed": 5,
+        "review": 15
+      },
+      "발주계획": {
+        "total": 56,
+        "confirmed": 16,
+        "review": 35
+      }
+    },
+    "20260408": {
+      "사전규격": {
+        "total": 59,
+        "confirmed": 17,
+        "review": 28
+      },
+      "발주계획": {
+        "total": 72,
+        "confirmed": 22,
+        "review": 46
+      }
+    },
+    "20260409": {
+      "사전규격": {
+        "total": 56,
+        "confirmed": 13,
+        "review": 36
+      },
+      "발주계획": {
+        "total": 66,
+        "confirmed": 9,
+        "review": 53
+      }
+    },
+    "20260410": {
+      "사전규격": {
+        "total": 0,
+        "confirmed": 0,
+        "review": 0
+      },
+      "발주계획": {
+        "total": 0,
+        "confirmed": 0,
+        "review": 0
+      }
+    },
+    "20260411": {
+      "사전규격": {
+        "total": 0,
+        "confirmed": 0,
+        "review": 0
+      },
+      "발주계획": {
+        "total": 0,
+        "confirmed": 0,
+        "review": 0
+      }
+    },
+    "20260412": {
+      "사전규격": {
+        "total": 2,
+        "confirmed": 1,
+        "review": 1
+      },
+      "발주계획": {
+        "total": 6,
+        "confirmed": 4,
+        "review": 2
+      }
+    },
+    "20260413": {
+      "사전규격": {
+        "total": 37,
+        "confirmed": 9,
+        "review": 23
+      },
+      "발주계획": {
+        "total": 74,
+        "confirmed": 22,
+        "review": 41
+      }
+    },
+    "20260414": {
+      "사전규격": {
+        "total": 43,
+        "confirmed": 10,
+        "review": 26
+      },
+      "발주계획": {
+        "total": 89,
+        "confirmed": 16,
+        "review": 64
+      }
+    },
+    "20260415": {
+      "사전규격": {
+        "total": 39,
+        "confirmed": 7,
+        "review": 25
+      },
+      "발주계획": {
+        "total": 80,
+        "confirmed": 13,
+        "review": 59
+      }
+    },
+    "20260416": {
+      "사전규격": {
+        "total": 34,
+        "confirmed": 6,
+        "review": 22
+      },
+      "발주계획": {
+        "total": 69,
+        "confirmed": 10,
+        "review": 52
+      }
+    },
+    "20260417": {
+      "사전규격": {
+        "total": 35,
+        "confirmed": 8,
+        "review": 23
+      },
+      "발주계획": {
+        "total": 37,
+        "confirmed": 5,
+        "review": 31
+      }
+    },
+    "20260418": {
+      "사전규격": {
+        "total": 1,
+        "confirmed": 0,
+        "review": 1
+      },
+      "발주계획": {
+        "total": 1,
+        "confirmed": 0,
+        "review": 1
+      }
+    },
+    "20260419": {
+      "사전규격": {
+        "total": 2,
+        "confirmed": 0,
+        "review": 1
+      },
+      "발주계획": {
+        "total": 4,
+        "confirmed": 0,
+        "review": 3
+      }
+    },
+    "20260420": {
+      "사전규격": {
+        "total": 38,
+        "confirmed": 8,
+        "review": 22
+      },
+      "발주계획": {
+        "total": 58,
+        "confirmed": 10,
+        "review": 41
+      }
+    },
+    "20260421": {
+      "사전규격": {
+        "total": 29,
+        "confirmed": 9,
+        "review": 17
+      },
+      "발주계획": {
+        "total": 55,
+        "confirmed": 11,
+        "review": 39
+      }
+    }
+  }
+}
