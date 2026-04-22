@@ -134,7 +134,7 @@ def leisure_filter(items: list[dict], name_field: str) -> list[dict]:
         if matched:
             confirmed.append({**item, "_matched": ", ".join(matched)})
         else:
-            review.append(item)
+            review.append({**item, "_reason": "키워드 미해당"})
 
     return {"confirmed": confirmed, "review": review}
 

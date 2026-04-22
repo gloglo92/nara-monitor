@@ -715,7 +715,7 @@ function getFilteredItems(rawData, refilterKw) {
       }
       confirmed.push({ ...item, _matched: mk });
     } else {
-      review.push(item);
+      review.push({ ...item, _reason: "키워드 미해당" });
     }
   });
   return { confirmed, review };
@@ -847,7 +847,7 @@ function showTab(type, sub) {
             <tr>
               <th>No.</th><th>사업명</th><th>발주기관</th><th>예산(원)</th>
               <th>${dlLabel}</th>
-              <th>${isConfirmedTab ? "매칭 키워드" : "강등사유"}</th>
+              <th>${isConfirmedTab ? "매칭 키워드" : "검토사유"}</th>
               <th>규격서</th>
             </tr>
           </thead>
@@ -1015,7 +1015,7 @@ function downloadExcel() {
     applyStyle(ws1, headerColor, colWidths);
     XLSX.utils.book_append_sheet(wb, ws1, `${label}-확정`);
 
-    const ws2 = XLSX.utils.json_to_sheet(toRows(sortReview(f.review, amtField), "강등사유"));
+    const ws2 = XLSX.utils.json_to_sheet(toRows(sortReview(f.review, amtField), "검토사유"));
     applyStyle(ws2, headerColor, colWidths);
     XLSX.utils.book_append_sheet(wb, ws2, `${label}-검토`);
   };
