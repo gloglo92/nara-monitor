@@ -65,7 +65,7 @@
     "발주계획"
   ],
   "latest": "20260501",
-  "last_collected_at": "2026-05-01 15:37 KST",
+  "last_collected_at": "2026-05-01 18:01 KST",
   "summary": {
     "20260306": {
       "사전규격": {
@@ -761,14 +761,14 @@
     },
     "20260501": {
       "사전규격": {
-        "total": 0,
-        "confirmed": 0,
-        "review": 0
-      },
-      "발주계획": {
         "total": 1,
         "confirmed": 0,
         "review": 1
+      },
+      "발주계획": {
+        "total": 2,
+        "confirmed": 0,
+        "review": 2
       }
     }
   }
