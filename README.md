@@ -73,6 +73,6 @@ https://[GitHub계정명].github.io/nara-monitor
 ## 🔑 기본 비밀번호
 
 ```
-leisure2026!
+
 ```
 > ⚠️ 배포 전 반드시 변경하세요
