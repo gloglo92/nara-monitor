@@ -20,9 +20,19 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ── 환경변수 ──────────────────────────────────────────────────
-API_KEY          = os.environ["NARA_API_KEY"]
-TELEGRAM_TOKEN   = os.environ["TELEGRAM_BOT_TOKEN"]
-TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
+API_KEY          = os.environ.get("NARA_API_KEY", "")
+TELEGRAM_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+
+if not API_KEY:
+    logger.error("❌ NARA_API_KEY Secret이 설정되지 않았습니다")
+    sys.exit(1)
+if not TELEGRAM_TOKEN:
+    logger.error("❌ TELEGRAM_BOT_TOKEN Secret이 설정되지 않았습니다")
+    sys.exit(1)
+if not TELEGRAM_CHAT_ID:
+    logger.error("❌ TELEGRAM_CHAT_ID Secret이 설정되지 않았습니다")
+    sys.exit(1)
 
 # ── 상수 ──────────────────────────────────────────────────────
 BASE_URL  = (
@@ -55,31 +65,8 @@ COLUMN_MAP = {
     "swBizObjYn":      "SW사업여부",
     "bidNtceNoList":   "공고번호",
     "refNo":           "참조번호",
-    "specDocFileNm1":  "첨부파일명1",
-    "specDocFileUrl1": "첨부파일URL1",
-    "specDocFileNm2":  "첨부파일명2",
-    "specDocFileUrl2": "첨부파일URL2",
-    "specDocFileNm3":  "첨부파일명3",
-    "specDocFileUrl3": "첨부파일URL3",
+    "specDocFileUrl1": "규격서URL",
 }
-
-
-def pick_best_url(row: dict) -> str:
-    """평가기준 파일 우선, 없으면 과업지시서, 없으면 첫 번째 파일 반환"""
-    files = [
-        (str(row.get("첨부파일명1", "")), str(row.get("첨부파일URL1", ""))),
-        (str(row.get("첨부파일명2", "")), str(row.get("첨부파일URL2", ""))),
-        (str(row.get("첨부파일명3", "")), str(row.get("첨부파일URL3", ""))),
-    ]
-    for priority in ["평가기준", "과업지시서"]:
-        for nm, url in files:
-            if priority in nm and url and url != "nan":
-                return url
-    # 우선순위 파일 없으면 첫 번째 유효 URL
-    for _, url in files:
-        if url and url != "nan":
-            return url
-    return ""
 
 
 def get_target_date_range() -> tuple[str, str, str]:
@@ -89,10 +76,7 @@ def get_target_date_range() -> tuple[str, str, str]:
     else:
         from datetime import timezone
         KST = timezone(timedelta(hours=9))
-        use_yesterday = os.environ.get("USE_YESTERDAY", "false").lower() == "true"
-        base = datetime.now(KST).replace(tzinfo=None)
-        if use_yesterday:
-            base -= timedelta(days=1)
+        base = datetime.now(KST).replace(tzinfo=None) - timedelta(days=1)
 
     start    = base.strftime("%Y%m%d") + "0000"
     end      = base.strftime("%Y%m%d") + "2359"
@@ -189,10 +173,6 @@ def build_dataframe(items: list[dict]) -> pd.DataFrame:
             df[col] = ""
 
     df = df[list(COLUMN_MAP.keys())].rename(columns=COLUMN_MAP)
-
-    # ★ 최적 첨부파일 URL 선택 (평가기준 > 과업지시서 > 첫 번째)
-    df["규격서URL"] = df.apply(pick_best_url, axis=1)
-    df = df.drop(columns=["첨부파일명1","첨부파일URL1","첨부파일명2","첨부파일URL2","첨부파일명3","첨부파일URL3"])
 
     # 금액 숫자 변환
     df["배정예산액(원)"] = (
