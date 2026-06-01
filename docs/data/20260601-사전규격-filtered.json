@@ -1,10 +1,10 @@
 {
   "date": "20260601",
   "type": "사전규격",
-  "total": 3,
+  "total": 4,
   "confirmed_count": 0,
-  "review_count": 3,
-  "generated_at": "2026-06-01T02:54:43.624314",
+  "review_count": 4,
+  "generated_at": "2026-06-01T04:09:06.109878",
   "confirmed": [],
   "review": [
     {
@@ -39,6 +39,22 @@
       "참조번호": "원주시",
       "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00234776&fileType=BFDTL&fileSeq=1",
       "_reason": "강등: 하수관"
+    },
+    {
+      "검색키워드": "설계",
+      "사전규격등록번호": "R26BD00234884",
+      "사업명(품명)": "2026년 어린이박물관 어린이관1 부분 개선 전시 연출 설계 및 제작·설치 용역",
+      "발주기관": "조달청 인천지방조달청",
+      "수요기관": "국립농업박물관",
+      "배정예산액(원)": "282,438,000",
+      "등록일시": "2026-06-01 13:04:09",
+      "의견등록마감일": "2026-06-06 23:59:00",
+      "납품기한": "2026-12-18 00:00:00",
+      "SW사업여부": "N",
+      "공고번호": "",
+      "참조번호": "전시기획팀-647",
+      "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00234884&fileType=BFDTL&fileSeq=1",
+      "_reason": "키워드 미해당"
     },
     {
       "검색키워드": "설계",
