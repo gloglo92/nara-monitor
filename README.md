@@ -1,6 +1,6 @@
 # 🌿 nara-monitor
 
-나라장터 기술용역 **사전규격** + **발주계획** 자동 수집 → 레저조경부 필터링 → 웹페이지 누적 조회
+
 
 ---
 
@@ -64,7 +64,7 @@ https://[GitHub계정명].github.io/nara-monitor
 
 ## 🔄 수동 실행 (테스트)
 
-`Actions → 나라장터 기술용역 수집 → Run workflow`
+`Actions →  수집 → Run workflow`
 - 특정 날짜: `target_date` 에 `YYYYMMDD` 형식 입력
 - 전일 자동: 빈칸으로 실행
 
