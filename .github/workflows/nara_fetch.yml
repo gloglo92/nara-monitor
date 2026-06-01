@@ -43,16 +43,7 @@ jobs:
           pip install --upgrade pip
           pip install requests pandas openpyxl
 
-      # ── 4. 날짜 모드 결정 (6시 정기수집=전날, 수시수집=당일) ──
-      - name: 🗓️ Set date mode
-        run: |
-          if [ "${{ github.event.schedule }}" = "0 21 * * *" ]; then
-            echo "USE_YESTERDAY=true" >> $GITHUB_ENV
-          else
-            echo "USE_YESTERDAY=false" >> $GITHUB_ENV
-          fi
-
-      # ── 5. 사전규격 수집 + JSON 저장 ────────────────────────
+      # ── 4. 사전규격 수집 + JSON 저장 ────────────────────────
       - name: 📋 Run 사전규격 fetch
         env:
           NARA_API_KEY:        ${{ secrets.NARA_API_KEY }}
@@ -63,7 +54,7 @@ jobs:
           cd scripts
           python fetch_narajangteo.py
 
-      # ── 6. 발주계획 수집 + JSON 저장 ────────────────────────
+      # ── 5. 발주계획 수집 + JSON 저장 ────────────────────────
       - name: 📌 Run 발주계획 fetch
         env:
           NARA_API_KEY:        ${{ secrets.NARA_API_KEY }}
@@ -82,7 +73,11 @@ jobs:
           git add docs/data/
           # 변경사항이 있을 때만 커밋 (없으면 스킵)
           git diff --staged --quiet || git commit -m "📊 데이터 업데이트: $(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M KST')"
-          git push
+          for i in 1 2 3; do
+            git push && break
+            echo "Push 실패 ($i/3), 재시도..."
+            sleep 10
+          done
 
       # ── 7. 실패 시 텔레그램 에러 알림 ──────────────────────
       - name: 🔴 Notify on failure
