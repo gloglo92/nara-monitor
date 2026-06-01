@@ -20,9 +20,19 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ── 환경변수 ──────────────────────────────────────────────────
-API_KEY          = os.environ["NARA_API_KEY"]
-TELEGRAM_TOKEN   = os.environ["TELEGRAM_BOT_TOKEN"]
-TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
+API_KEY          = os.environ.get("NARA_API_KEY", "")
+TELEGRAM_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+
+if not API_KEY:
+    logger.error("❌ NARA_API_KEY Secret이 설정되지 않았습니다")
+    sys.exit(1)
+if not TELEGRAM_TOKEN:
+    logger.error("❌ TELEGRAM_BOT_TOKEN Secret이 설정되지 않았습니다")
+    sys.exit(1)
+if not TELEGRAM_CHAT_ID:
+    logger.error("❌ TELEGRAM_CHAT_ID Secret이 설정되지 않았습니다")
+    sys.exit(1)
 
 # ── 상수 ──────────────────────────────────────────────────────
 BASE_URL = (
@@ -72,10 +82,7 @@ def get_target_date_range() -> tuple[str, str, str]:
     else:
         from datetime import timezone
         KST = timezone(timedelta(hours=9))
-        use_yesterday = os.environ.get("USE_YESTERDAY", "false").lower() == "true"
-        base = datetime.now(KST).replace(tzinfo=None)
-        if use_yesterday:
-            base -= timedelta(days=1)
+        base = datetime.now(KST).replace(tzinfo=None) - timedelta(days=1)
 
     start    = base.strftime("%Y%m%d") + "0000"
     end      = base.strftime("%Y%m%d") + "2359"
