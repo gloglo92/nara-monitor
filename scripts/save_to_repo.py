@@ -125,16 +125,15 @@ def leisure_filter(items: list[dict], name_field: str) -> list[dict]:
             continue
 
         # 확정→검토 강등 (SOFT_EXCLUDE 단어 포함 시 검토로)
-        soft_hit = next((ex for ex in SOFT_EXCLUDE_KEYWORDS if ex in name), None)
-        if soft_hit:
-            review.append({**item, "_reason": f"강등: {soft_hit}"})
+        if any(ex in name for ex in SOFT_EXCLUDE_KEYWORDS):
+            review.append(item)
             continue
 
         matched = [kw for kw in INCLUDE_KEYWORDS if kw in name]
         if matched:
             confirmed.append({**item, "_matched": ", ".join(matched)})
         else:
-            review.append({**item, "_reason": "키워드 미해당"})
+            review.append(item)
 
     return {"confirmed": confirmed, "review": review}
 
@@ -169,11 +168,13 @@ def save_json_data(df: pd.DataFrame, date_str: str, data_type: str) -> None:
 
     # ── 1. 원본 전체 저장 ──────────────────────────────────────
     raw_path = data_dir / f"{date_str}-{data_type}.json"
+    from datetime import timezone, timedelta
+    KST = timezone(timedelta(hours=9))
     raw_payload = {
         "date":         date_str,
         "type":         data_type,
         "total":        len(all_items),
-        "generated_at": datetime.now().isoformat(),
+        "generated_at": datetime.now(KST).isoformat(),
         "items":        all_items,
     }
     raw_path.write_text(
@@ -192,7 +193,7 @@ def save_json_data(df: pd.DataFrame, date_str: str, data_type: str) -> None:
     for item in filtered["confirmed"]:
         if (item.get("검색키워드") == "설계"
                 and parse_budget(item.get(budget_field, "0")) < DESIGN_BUDGET_THRESHOLD):
-            demoted.append({**item, "_reason": "설계(1억미만)"})
+            demoted.append(item)
         else:
             confirmed_items.append(item)
     review_items = demoted + filtered["review"]
@@ -204,7 +205,7 @@ def save_json_data(df: pd.DataFrame, date_str: str, data_type: str) -> None:
         "total":            len(all_items),
         "confirmed_count":  len(confirmed_items),
         "review_count":     len(review_items),
-        "generated_at":     datetime.now().isoformat(),
+        "generated_at":     datetime.now(KST).isoformat(),
         "confirmed":        confirmed_items,
         "review":           review_items,
     }
