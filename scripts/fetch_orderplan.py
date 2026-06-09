@@ -263,6 +263,9 @@ def save_excel(df: pd.DataFrame, date_str: str) -> str:
 
 
 def send_telegram_message(text: str):
+    # ★ 무음 수집: TELEGRAM_NOTIFY=1 일 때만 발송 (빈번한 수집 run은 알림 생략)
+    if os.environ.get("TELEGRAM_NOTIFY") != "1":
+        return
     requests.post(
         f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
         json={
@@ -275,6 +278,9 @@ def send_telegram_message(text: str):
 
 
 def send_telegram_file(filepath: str, date_str: str, count: int, df: pd.DataFrame = None):
+    # ★ 무음 수집: TELEGRAM_NOTIFY=1 일 때만 발송
+    if os.environ.get("TELEGRAM_NOTIFY") != "1":
+        return
     y, m, d = date_str[:4], date_str[4:6], date_str[6:]
 
     # 키워드별 건수 요약
