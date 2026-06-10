@@ -23,14 +23,16 @@ DATA_DIR    = Path(__file__).parent.parent / "docs" / "data"
 MARKER_PATH = DATA_DIR / ".last_summary"
 
 
+SUMMARY_HOUR_KST = 19   # ★ 요약은 하루 데이터가 쌓인 저녁 19시 이후에 발송
+
+
 def get_target_date() -> str:
-    """전일(또는 TARGET_DATE) 날짜 문자열 YYYYMMDD 반환"""
+    """오늘(또는 TARGET_DATE) 날짜 문자열 YYYYMMDD 반환"""
     target = os.environ.get("TARGET_DATE", "").strip()
     if target and len(target) == 8:
         return target
     KST = timezone(timedelta(hours=9))
-    base = datetime.now(KST) - timedelta(days=1)
-    return base.strftime("%Y%m%d")
+    return datetime.now(KST).strftime("%Y%m%d")   # ★ 오늘
 
 
 def read_filtered(date_str: str, data_type: str) -> dict:
@@ -74,6 +76,12 @@ def main():
         return
 
     date_str = get_target_date()
+
+    # ── 저녁(19시) 이후에만 발송 (하루 데이터가 다 쌓인 뒤 요약) ──
+    KST = timezone(timedelta(hours=9))
+    if not FORCE_NOTIFY and datetime.now(KST).hour < SUMMARY_HOUR_KST:
+        print(f"ℹ️ 아직 요약 시각(KST {SUMMARY_HOUR_KST}시) 전 → 생략")
+        return
 
     # ── 중복 발송 방지 ────────────────────────────────────────
     if not FORCE_NOTIFY and MARKER_PATH.exists():
