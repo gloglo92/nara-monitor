@@ -82,7 +82,7 @@ def get_target_date_range() -> tuple[str, str, str]:
     else:
         from datetime import timezone
         KST = timezone(timedelta(hours=9))
-        base = datetime.now(KST).replace(tzinfo=None) - timedelta(days=1)
+        base = datetime.now(KST).replace(tzinfo=None)   # ★ 오늘 데이터 수집
 
     start    = base.strftime("%Y%m%d") + "0000"
     end      = base.strftime("%Y%m%d") + "2359"
