@@ -1,10 +1,10 @@
 {
   "date": "20260610",
   "type": "사전규격",
-  "total": 21,
-  "confirmed_count": 6,
+  "total": 22,
+  "confirmed_count": 7,
   "review_count": 11,
-  "generated_at": "2026-06-10T18:01:51.437891+09:00",
+  "generated_at": "2026-06-10T21:37:01.697470+09:00",
   "confirmed": [
     {
       "검색키워드": "타당성",
@@ -101,6 +101,22 @@
       "참조번호": "노인복지과-22359",
       "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00239238&fileType=BFDTL&fileSeq=1",
       "_matched": "복지"
+    },
+    {
+      "검색키워드": "설계",
+      "사전규격등록번호": "R26BD00239265",
+      "사업명(품명)": "대청호 생태누리길 조성사업(3단계) 실시설계용역(긴급)",
+      "발주기관": "대전광역시 대덕구",
+      "수요기관": "대전광역시 대덕구",
+      "배정예산액(원)": "109,225,000",
+      "등록일시": "2026-06-10 18:43:00",
+      "의견등록마감일": "2026-06-13 23:59:00",
+      "납품기한": "",
+      "SW사업여부": "N",
+      "공고번호": "",
+      "참조번호": "운영지원과-18061호",
+      "규격서URL": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00239265&fileType=BFDTL&fileSeq=1",
+      "_matched": "생태"
     }
   ],
   "review": [
